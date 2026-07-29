@@ -1,0 +1,313 @@
+// Portal RRHH SERCOM — piloto independiente
+// Ver especificación: Especificacion_Funcional_Portal_RRHH_SERCOM_v1.0.docx
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Usuarios y organización
+// ---------------------------------------------------------------------------
+
+enum EstadoUsuario {
+  ACTIVO
+  BAJA
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String
+  azureAdId     String?       @unique
+  departamento  String?
+  managerId     String?
+  manager       User?         @relation("ManagerDeEquipo", fields: [managerId], references: [id])
+  reportes      User[]        @relation("ManagerDeEquipo")
+  estado        EstadoUsuario @default(ACTIVO)
+  fechaAlta     DateTime      @default(now())
+  fechaBaja     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  permisos            UserPermission[]
+  asignacionesJornada AsignacionJornada[]
+  marcaciones         Marcacion[]              @relation("MarcacionesDelUsuario")
+  correccionesSolicitadas CorreccionMarcacion[] @relation("SolicitanteCorreccion")
+  correccionesAprobadas   CorreccionMarcacion[] @relation("AprobadorCorreccion")
+  saldosVacaciones    SaldoVacaciones[]
+  movimientosSaldo    MovimientoSaldo[]        @relation("MovimientosDelUsuario")
+  solicitudes         SolicitudAusencia[]      @relation("SolicitanteAusencia")
+  solicitudesAprobadas SolicitudAusencia[]     @relation("AprobadorAusencia")
+  pushSubscriptions   PushSubscription[]
+  recordatorios       RecordatorioFichaje[]
+  auditLogs           AuditLog[]
+
+  @@index([managerId])
+  @@index([departamento])
+}
+
+// Catálogo fijo de permisos (spec §4.3). La autorización nunca depende de un
+// campo "rol" hardcodeado: todo se resuelve consultando esta tabla.
+model Permission {
+  code        String           @id
+  description String
+  usuarios    UserPermission[]
+}
+
+model UserPermission {
+  userId         String
+  permissionCode String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission     Permission @relation(fields: [permissionCode], references: [code])
+
+  @@id([userId, permissionCode])
+}
+
+// ---------------------------------------------------------------------------
+// Jornadas y calendarios
+// ---------------------------------------------------------------------------
+
+model JornadaPlantilla {
+  id          String   @id @default(cuid())
+  nombre      String
+  tipo        String // COMPLETA | PARCIAL | INTENSIVA | PARTIDA
+  tieneTramo2 Boolean  @default(true)
+  // Horas teóricas de cada tramo, en minutos desde medianoche (hora local del centro)
+  tramo1Inicio Int
+  tramo1Fin    Int
+  tramo2Inicio Int?
+  tramo2Fin    Int?
+  toleranciaEntradaMin Int @default(10)
+  toleranciaSalidaMin  Int @default(10)
+  createdAt   DateTime @default(now())
+
+  asignaciones AsignacionJornada[]
+}
+
+model AsignacionJornada {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jornadaId   String
+  jornada     JornadaPlantilla @relation(fields: [jornadaId], references: [id])
+  vigenteDesde DateTime
+  vigenteHasta DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@index([userId, vigenteDesde])
+}
+
+model Festivo {
+  id     String   @id @default(cuid())
+  fecha  DateTime @db.Date
+  nombre String
+  ambito String // NACIONAL | AUTONOMICO | LOCAL | EMPRESA
+
+  @@unique([fecha, ambito])
+}
+
+// ---------------------------------------------------------------------------
+// Registro horario (fichajes)
+// ---------------------------------------------------------------------------
+
+enum CanalOrigen {
+  PORTAL_RRHH
+  APP_SERCOM
+  ADMIN_CORRECCION
+  IMPORTACION
+}
+
+enum TipoMarcacion {
+  ENTRADA
+  SALIDA
+}
+
+// El estado de jornada (NO_INICIADA/EN_TRAMO_1/EN_PAUSA/EN_TRAMO_2/FINALIZADA)
+// se DERIVA de estos eventos, nunca se almacena — spec §6.2/§6.6: el registro
+// original nunca se sobrescribe ni se elimina.
+model Marcacion {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation("MarcacionesDelUsuario", fields: [userId], references: [id], onDelete: Cascade)
+  tipo           TipoMarcacion
+  tramo          Int // 1 = mañana/único, 2 = tarde
+  timestampServidor DateTime   @default(now())
+  fechaLaboral   DateTime      @db.Date // jornada que cruza medianoche se asocia a la fecha de inicio
+  canalOrigen    CanalOrigen   @default(PORTAL_RRHH)
+  esIncidencia   Boolean       @default(false)
+  idempotencyKey String        @unique // evita duplicados por reintento/doble clic
+  createdAt      DateTime      @default(now())
+
+  correcciones CorreccionMarcacion[]
+
+  @@index([userId, fechaLaboral])
+}
+
+enum EstadoCorreccion {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
+model CorreccionMarcacion {
+  id                String           @id @default(cuid())
+  marcacionId        String
+  marcacion          Marcacion        @relation(fields: [marcacionId], references: [id])
+  valorAnterior      DateTime
+  valorPropuesto     DateTime
+  motivo             String
+  estado             EstadoCorreccion @default(PENDIENTE)
+  solicitanteId      String
+  solicitante        User             @relation("SolicitanteCorreccion", fields: [solicitanteId], references: [id])
+  aprobadorId        String?
+  aprobador          User?            @relation("AprobadorCorreccion", fields: [aprobadorId], references: [id])
+  createdAt          DateTime         @default(now())
+  resueltoAt         DateTime?
+
+  @@index([marcacionId])
+}
+
+// ---------------------------------------------------------------------------
+// Vacaciones y ausencias
+// ---------------------------------------------------------------------------
+
+model TipoAusencia {
+  codigo         String  @id // ej. VACACIONES
+  nombre         String
+  consumeSaldo   Boolean @default(true)
+  unidad         String  @default("DIAS_LABORABLES")
+  requiereJustificante Boolean @default(false)
+  activo         Boolean @default(true)
+
+  solicitudes SolicitudAusencia[]
+}
+
+model SaldoVacaciones {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anio        Int
+  totalAnual  Float
+  arrastre    Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  movimientos MovimientoSaldo[]
+
+  @@unique([userId, anio])
+}
+
+enum TipoMovimientoSaldo {
+  CARGA_INICIAL
+  DEVENGO
+  RESERVA // al enviar solicitud (pendiente de aprobación)
+  APROBACION // consumo definitivo al aprobar
+  LIBERACION_RESERVA // al rechazar/cancelar una solicitud pendiente
+  ANULACION // devolución de saldo tras anular una aprobada
+  AJUSTE
+  CADUCIDAD
+}
+
+model MovimientoSaldo {
+  id            String              @id @default(cuid())
+  saldoId       String
+  saldo         SaldoVacaciones     @relation(fields: [saldoId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User                @relation("MovimientosDelUsuario", fields: [userId], references: [id])
+  tipo          TipoMovimientoSaldo
+  cantidad      Float // positivo = suma disponible, negativo = resta
+  solicitudId   String?
+  solicitud     SolicitudAusencia?  @relation(fields: [solicitudId], references: [id])
+  motivo        String?
+  createdAt     DateTime            @default(now())
+
+  @@index([saldoId])
+  @@index([userId])
+}
+
+enum EstadoSolicitud {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+  CANCELADA
+}
+
+model SolicitudAusencia {
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation("SolicitanteAusencia", fields: [userId], references: [id], onDelete: Cascade)
+  tipoAusenciaCodigo String
+  tipoAusencia   TipoAusencia    @relation(fields: [tipoAusenciaCodigo], references: [codigo])
+  fechaInicio    DateTime        @db.Date
+  fechaFin       DateTime        @db.Date
+  dias           Float
+  comentario     String?
+  estado         EstadoSolicitud @default(PENDIENTE)
+  aprobadorId    String?
+  aprobador      User?           @relation("AprobadorAusencia", fields: [aprobadorId], references: [id])
+  motivoResolucion String?
+  esExcepcionSinManager Boolean  @default(false)
+  createdAt      DateTime        @default(now())
+  resueltoAt     DateTime?
+
+  movimientos MovimientoSaldo[]
+
+  @@index([userId])
+  @@index([estado])
+}
+
+// ---------------------------------------------------------------------------
+// Avisos de fichaje (Web Push)
+// ---------------------------------------------------------------------------
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Rastrea el último recordatorio push enviado por (usuario, día, tipo de
+// acción) para poder respetar la repetición de 15 min sin reenviar en cada
+// tick del cron (spec §6.4).
+model RecordatorioFichaje {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fecha       DateTime @db.Date
+  tipo        String
+  ultimoEnvio DateTime @default(now())
+
+  @@unique([userId, fecha, tipo])
+}
+
+// ---------------------------------------------------------------------------
+// Auditoría (versión ligera para el piloto — spec §13 es fase 2)
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  actorId        String?
+  actor          User?    @relation(fields: [actorId], references: [id])
+  accion         String
+  entidad        String
+  entidadId      String
+  valoresAntes   Json?
+  valoresDespues Json?
+  motivo         String?
+  origenTecnico  String   @default("PORTAL_RRHH")
+  createdAt      DateTime @default(now())
+
+  @@index([entidad, entidadId])
+  @@index([actorId])
+}
