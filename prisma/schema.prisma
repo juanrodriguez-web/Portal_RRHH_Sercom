@@ -77,9 +77,11 @@ model JornadaPlantilla {
   nombre      String
   tipo        String // COMPLETA | PARCIAL | INTENSIVA | PARTIDA
   tieneTramo2 Boolean  @default(true)
+  horasSemana Float?   // Horas totales por semana (40, 37.5, 35, etc). Si es NULL, usar tramos específicos.
   // Horas teóricas de cada tramo, en minutos desde medianoche (hora local del centro)
-  tramo1Inicio Int
-  tramo1Fin    Int
+  // Opcionales si horasSemana está definido (jornada flexible sin horarios específicos)
+  tramo1Inicio Int?
+  tramo1Fin    Int?
   tramo2Inicio Int?
   tramo2Fin    Int?
   toleranciaEntradaMin Int @default(10)

@@ -17,37 +17,52 @@ async function main() {
     await prisma.permission.upsert({ where: { code }, create: { code, description }, update: { description } });
   }
 
-  console.log("Sembrando plantillas de jornada…");
-  const jornadaPartida = await prisma.jornadaPlantilla.upsert({
-    where: { id: "seed-jornada-partida" },
-    create: {
-      id: "seed-jornada-partida",
-      nombre: "Oficina — jornada partida",
-      tipo: "PARTIDA",
-      tieneTramo2: true,
-      tramo1Inicio: 9 * 60,
-      tramo1Fin: 14 * 60,
-      tramo2Inicio: 15 * 60,
-      tramo2Fin: 18 * 60,
-      toleranciaEntradaMin: 10,
-      toleranciaSalidaMin: 10,
-    },
-    update: {},
-  });
+  console.log("Sembrando plantillas de jornada estándar…");
 
-  const jornadaContinua = await prisma.jornadaPlantilla.upsert({
-    where: { id: "seed-jornada-continua" },
+  // Jornadas estándar por horas/semana (sin horarios fijos, flexible)
+  const jornada40 = await prisma.jornadaPlantilla.upsert({
+    where: { id: "seed-jornada-40h" },
     create: {
-      id: "seed-jornada-continua",
-      nombre: "Comercial — jornada continua",
+      id: "seed-jornada-40h",
+      nombre: "Jornada completa — 40 horas/semana",
       tipo: "COMPLETA",
       tieneTramo2: false,
-      tramo1Inicio: 8 * 60,
-      tramo1Fin: 15 * 60,
+      horasSemana: 40,
+      // Sin horarios específicos: flexible
       toleranciaEntradaMin: 10,
       toleranciaSalidaMin: 10,
     },
-    update: {},
+    update: { nombre: "Jornada completa — 40 horas/semana", horasSemana: 40 },
+  });
+
+  const jornada37_5 = await prisma.jornadaPlantilla.upsert({
+    where: { id: "seed-jornada-37.5h" },
+    create: {
+      id: "seed-jornada-37.5h",
+      nombre: "Jornada partida — 37.5 horas/semana",
+      tipo: "PARTIDA",
+      tieneTramo2: true,
+      horasSemana: 37.5,
+      // Sin horarios específicos: pausa flexible a criterio del empleado
+      toleranciaEntradaMin: 10,
+      toleranciaSalidaMin: 10,
+    },
+    update: { nombre: "Jornada partida — 37.5 horas/semana", horasSemana: 37.5 },
+  });
+
+  const jornada35 = await prisma.jornadaPlantilla.upsert({
+    where: { id: "seed-jornada-35h" },
+    create: {
+      id: "seed-jornada-35h",
+      nombre: "Jornada reducida — 35 horas/semana",
+      tipo: "PARCIAL",
+      tieneTramo2: false,
+      horasSemana: 35,
+      // Sin horarios específicos: flexible
+      toleranciaEntradaMin: 10,
+      toleranciaSalidaMin: 10,
+    },
+    update: { nombre: "Jornada reducida — 35 horas/semana", horasSemana: 35 },
   });
 
   console.log("Sembrando festivos nacionales…");
@@ -135,10 +150,13 @@ async function main() {
       await prisma.asignacionJornada.create({ data: { userId, jornadaId, vigenteDesde: inicioAnio } });
     }
   };
-  await asignarJornada(laura.id, jornadaPartida.id);
-  await asignarJornada(ana.id, jornadaPartida.id);
-  await asignarJornada(marcos.id, jornadaPartida.id);
-  await asignarJornada(carlos.id, jornadaContinua.id);
+  // Laura (RRHH): 37.5h partida
+  await asignarJornada(laura.id, jornada37_5.id);
+  // Ana y Marcos (empleados): 37.5h partida
+  await asignarJornada(ana.id, jornada37_5.id);
+  await asignarJornada(marcos.id, jornada37_5.id);
+  // Carlos (manager/comercial): 40h
+  await asignarJornada(carlos.id, jornada40.id);
 
   console.log("Sembrando saldos de vacaciones del año en curso…");
   for (const u of [laura, carlos, ana, marcos]) {

@@ -83,12 +83,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             });
           }
 
-          // Asignar jornada predeterminada: "Oficina — jornada partida" (40 horas)
+          // Asignar jornada predeterminada: "Jornada partida — 37.5 horas/semana"
           // vigente desde hoy
           await tx.asignacionJornada.create({
             data: {
               userId: newUser.id,
-              jornadaId: "seed-jornada-partida",
+              jornadaId: "seed-jornada-37.5h",
               vigenteDesde: new Date(),
             },
           });
