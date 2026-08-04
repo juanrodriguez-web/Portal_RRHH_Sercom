@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
+import { PERMISSION_GROUPS } from "@/lib/permissions";
 
 // Acceso de demo — igual de espíritu que el selector "Simular acceso como"
 // del prototipo (Anexo C: "exclusivamente demostrativo"). Permite entrar
@@ -52,6 +53,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     // Auto-crea usuarios de @sercomsoluciones.es, rechaza el resto
     // (spec §9.2: la fuente de identidad es Microsoft 365).
+    // En el primer login, asigna automáticamente:
+    //   - Permisos de grupo "empleado"
+    //   - Jornada predeterminada: "Oficina — jornada partida" (40 horas/semana)
+    //   - RRHH puede cambiar ambos después si es necesario
     async signIn({ user }) {
       if (!user.email) return false;
       const email = user.email.toLowerCase();
@@ -64,8 +69,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Si no existe: crear solo si es dominio @sercomsoluciones.es
       if (!email.endsWith("@sercomsoluciones.es")) return false;
       try {
-        await prisma.user.create({
-          data: { email, name: user.name || email, estado: "ACTIVO" },
+        await prisma.$transaction(async (tx) => {
+          // Crear usuario
+          const newUser = await tx.user.create({
+            data: { email, name: user.name || email, estado: "ACTIVO" },
+          });
+
+          // Asignar permisos de grupo "empleado"
+          const empleadoPermisos = PERMISSION_GROUPS["empleado"];
+          for (const permCode of empleadoPermisos) {
+            await tx.userPermission.create({
+              data: { userId: newUser.id, permissionCode: permCode },
+            });
+          }
+
+          // Asignar jornada predeterminada: "Oficina — jornada partida" (40 horas)
+          // vigente desde hoy
+          await tx.asignacionJornada.create({
+            data: {
+              userId: newUser.id,
+              jornadaId: "seed-jornada-partida",
+              vigenteDesde: new Date(),
+            },
+          });
         });
         return true;
       } catch {
