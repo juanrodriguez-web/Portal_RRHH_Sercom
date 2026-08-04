@@ -2,13 +2,20 @@ import "server-only";
 import webPush from "web-push";
 import { prisma } from "@/lib/prisma";
 
-webPush.setVapidDetails(
-  process.env.VAPID_SUBJECT ?? "mailto:rrhh@sercom.es",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "",
-  process.env.VAPID_PRIVATE_KEY ?? ""
-);
+let vapidConfigured = false;
+
+function initVapid() {
+  if (vapidConfigured) return;
+  webPush.setVapidDetails(
+    process.env.VAPID_SUBJECT ?? "mailto:rrhh@sercom.es",
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "",
+    process.env.VAPID_PRIVATE_KEY ?? ""
+  );
+  vapidConfigured = true;
+}
 
 export async function enviarPushAUsuario(userId: string, payload: { title: string; body: string; tag?: string }) {
+  initVapid();
   const subs = await prisma.pushSubscription.findMany({ where: { userId } });
   await Promise.all(
     subs.map(async (sub) => {
