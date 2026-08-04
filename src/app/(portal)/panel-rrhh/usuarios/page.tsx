@@ -1,5 +1,5 @@
 import { requirePermission } from "@/lib/authz";
-import { PERMISSIONS } from "@/lib/permissions";
+import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,12 @@ import { FilaUsuario } from "@/components/panel-rrhh/fila-usuario";
 export default async function UsuariosPage() {
   await requirePermission(PERMISSIONS.verUsuarios);
 
-  const usuarios = await prisma.user.findMany({ orderBy: { name: "asc" } });
+  const usuarios = await prisma.user.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      permisos: { select: { permissionCode: true } },
+    },
+  });
   const managers = usuarios.map((u) => ({ id: u.id, name: u.name }));
 
   return (
@@ -26,6 +31,7 @@ export default async function UsuariosPage() {
               <th className="py-2 pr-4">Departamento</th>
               <th className="py-2 pr-4">Manager</th>
               <th className="py-2 pr-4">Estado</th>
+              <th className="py-2 pr-4">Rol</th>
               <th className="py-2 pr-4" />
             </tr>
           </thead>

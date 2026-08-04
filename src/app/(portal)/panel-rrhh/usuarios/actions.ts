@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { PERMISSIONS } from "@/lib/permissions";
+import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
 
 export async function actualizarAtributosUsuario(
   userId: string,
@@ -34,6 +34,38 @@ export async function actualizarAtributosUsuario(
       },
     }),
   ]);
+
+  revalidatePath("/panel-rrhh/usuarios");
+}
+
+export async function asignarGrupoPermisos(userId: string, grupo: "empleado" | "manager" | "rrhh") {
+  const actor = await requirePermission(PERMISSIONS.gestionarUsuariosRrhh);
+
+  const permisosCodes = PERMISSION_GROUPS[grupo];
+  if (!permisosCodes) throw new Error("Grupo de permisos inválido");
+
+  await prisma.$transaction(async (tx) => {
+    // Eliminar permisos existentes
+    await tx.userPermission.deleteMany({ where: { userId } });
+
+    // Asignar nuevos permisos del grupo
+    for (const code of permisosCodes) {
+      await tx.userPermission.create({
+        data: { userId, permissionCode: code },
+      });
+    }
+
+    // Auditar
+    await tx.auditLog.create({
+      data: {
+        actorId: actor.id,
+        accion: "ASIGNAR_PERMISOS_USUARIO",
+        entidad: "User",
+        entidadId: userId,
+        valoresDespues: { grupo },
+      },
+    });
+  });
 
   revalidatePath("/panel-rrhh/usuarios");
 }

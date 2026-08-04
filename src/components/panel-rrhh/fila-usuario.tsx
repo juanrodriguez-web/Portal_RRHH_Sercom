@@ -2,20 +2,36 @@
 
 import { useState, useTransition } from "react";
 import type { User } from "@/generated/prisma/client";
-import { actualizarAtributosUsuario } from "@/app/(portal)/panel-rrhh/usuarios/actions";
+import { PERMISSION_GROUPS } from "@/lib/permissions";
+import { actualizarAtributosUsuario, asignarGrupoPermisos } from "@/app/(portal)/panel-rrhh/usuarios/actions";
+
+type UsuarioConPermisos = User & {
+  permisos: { permissionCode: string }[];
+};
 
 export function FilaUsuario({
   usuario,
   managers,
 }: {
-  usuario: User;
+  usuario: UsuarioConPermisos;
   managers: { id: string; name: string }[];
 }) {
   const [departamento, setDepartamento] = useState(usuario.departamento ?? "");
   const [managerId, setManagerId] = useState(usuario.managerId ?? "");
   const [estado, setEstado] = useState(usuario.estado);
+  const [grupoPermisos, setGrupoPermisos] = useState<"empleado" | "manager" | "rrhh" | "">(
+    usuario.permisos.length > 0 ? detectarGrupo(usuario.permisos) : ""
+  );
   const [pending, startTransition] = useTransition();
   const [guardado, setGuardado] = useState(false);
+
+  function detectarGrupo(permisos: { permissionCode: string }[]): "empleado" | "manager" | "rrhh" | "" {
+    const codes = new Set(permisos.map((p) => p.permissionCode));
+    if (codes.has("gestionarUsuariosRrhh")) return "rrhh";
+    if (codes.has("aprobarVacacionesEquipo")) return "manager";
+    if (codes.has("registrarFichajePropio")) return "empleado";
+    return "";
+  }
 
   function guardar() {
     setGuardado(false);
@@ -25,6 +41,9 @@ export function FilaUsuario({
         managerId: managerId || null,
         estado,
       });
+      if (grupoPermisos) {
+        await asignarGrupoPermisos(usuario.id, grupoPermisos as "empleado" | "manager" | "rrhh");
+      }
       setGuardado(true);
     });
   }
@@ -64,6 +83,18 @@ export function FilaUsuario({
         >
           <option value="ACTIVO">Activo</option>
           <option value="BAJA">Baja</option>
+        </select>
+      </td>
+      <td className="py-2 pr-4">
+        <select
+          value={grupoPermisos}
+          onChange={(e) => setGrupoPermisos(e.target.value as any)}
+          className="rounded-[var(--radius-control)] border border-border-strong px-2 py-1 text-sm"
+        >
+          <option value="">—</option>
+          <option value="empleado">Empleado</option>
+          <option value="manager">Manager</option>
+          <option value="rrhh">RRHH</option>
         </select>
       </td>
       <td className="py-2 pr-4">
