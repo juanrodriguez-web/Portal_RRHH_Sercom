@@ -16,13 +16,13 @@ const REPETICION_MS = 15 * 60_000; // spec §6.4
 function umbralMinutos(
   accionTipo: "ENTRADA" | "SALIDA",
   tramo: 1 | 2,
-  jornada: { tramo1Inicio: number; tramo1Fin: number; tramo2Inicio: number | null; tramo2Fin: number | null; toleranciaEntradaMin: number; toleranciaSalidaMin: number }
+  jornada: { tramo1Inicio: number | null; tramo1Fin: number | null; tramo2Inicio: number | null; tramo2Fin: number | null; toleranciaEntradaMin: number; toleranciaSalidaMin: number }
 ) {
   if (accionTipo === "ENTRADA") {
-    const base = tramo === 1 ? jornada.tramo1Inicio : jornada.tramo2Inicio ?? 0;
+    const base = tramo === 1 ? (jornada.tramo1Inicio ?? 0) : (jornada.tramo2Inicio ?? 0);
     return base + jornada.toleranciaEntradaMin;
   }
-  const base = tramo === 1 ? jornada.tramo1Fin : jornada.tramo2Fin ?? 0;
+  const base = tramo === 1 ? (jornada.tramo1Fin ?? 0) : (jornada.tramo2Fin ?? 0);
   return base + jornada.toleranciaSalidaMin;
 }
 

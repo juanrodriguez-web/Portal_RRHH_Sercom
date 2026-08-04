@@ -47,27 +47,35 @@ export function RelojFichaje({
   return (
     <Card className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">
-          {ahora ? new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(ahora) : ""}
-        </span>
+        <span className="text-sm text-muted-foreground">Fichaje de hoy</span>
         <Badge tone={estado.tono}>{estado.texto}</Badge>
       </div>
 
-      <div className="font-mono text-5xl font-bold tabular-nums text-foreground">
-        {ahora ? new Intl.DateTimeFormat("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(ahora) : "--:--:--"}
+      <div className="flex items-stretch gap-6">
+        <div className="flex flex-col justify-between">
+          <div className="font-mono text-5xl font-bold tabular-nums text-foreground">
+            {ahora ? new Intl.DateTimeFormat("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(ahora) : "--:--:--"}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Hoy llevas <span className="font-semibold text-foreground">{formatMinutos(minutosTrabajadosInicial)}</span>
+          </p>
+        </div>
+
+        {accion ? (
+          <Button
+            variant="primary"
+            onClick={handleClick}
+            disabled={pending}
+            className="px-8 py-6 text-lg font-bold rounded-lg"
+          >
+            {pending ? "Registrando…" : accion.etiqueta}
+          </Button>
+        ) : (
+          <div className="flex items-center">
+            <p className="text-sm font-medium text-muted-foreground">No hay ninguna acción pendiente.</p>
+          </div>
+        )}
       </div>
-
-      <p className="text-sm text-muted-foreground">
-        Hoy llevas <span className="font-semibold text-foreground">{formatMinutos(minutosTrabajadosInicial)}</span>
-      </p>
-
-      {accion ? (
-        <Button size="md" variant="success" onClick={handleClick} disabled={pending} className="self-start">
-          {pending ? "Registrando…" : accion.etiqueta}
-        </Button>
-      ) : (
-        <p className="text-sm font-medium text-muted-foreground">No hay ninguna acción pendiente.</p>
-      )}
 
       {error ? <p className="text-sm text-danger">{error}</p> : null}
     </Card>
