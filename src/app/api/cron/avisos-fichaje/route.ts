@@ -11,6 +11,8 @@ import {
   tieneAusenciaAprobadaHoy,
 } from "@/lib/fichajes";
 
+export const dynamic = "force-dynamic";
+
 const REPETICION_MS = 15 * 60_000; // spec §6.4
 
 function umbralMinutos(
