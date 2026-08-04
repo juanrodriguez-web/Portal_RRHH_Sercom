@@ -30,12 +30,18 @@ export default async function PanelRRHHPage() {
         ))}
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 flex-wrap">
         <Link
           href="/panel-rrhh/usuarios"
           className="rounded-[var(--radius-control)] border border-border-strong bg-surface px-4 py-2 text-sm font-semibold hover:bg-background"
         >
           Gestionar usuarios →
+        </Link>
+        <Link
+          href="/panel-rrhh/jornadas"
+          className="rounded-[var(--radius-control)] border border-border-strong bg-surface px-4 py-2 text-sm font-semibold hover:bg-background"
+        >
+          Gestionar jornadas →
         </Link>
         <a
           href="/api/fichajes/export"
