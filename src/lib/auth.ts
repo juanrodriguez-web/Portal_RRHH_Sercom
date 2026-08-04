@@ -50,16 +50,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     authorized({ auth }) {
       return !!auth?.user;
     },
-    // Solo pueden entrar usuarios ya dados de alta por RRHH en el piloto
-    // (spec §9.2: la fuente de identidad es el usuario existente, no un
-    // alta automática por login).
+    // Auto-crea usuarios de @sercomsoluciones.es, rechaza el resto
+    // (spec §9.2: la fuente de identidad es Microsoft 365).
     async signIn({ user }) {
       if (!user.email) return false;
+      const email = user.email.toLowerCase();
       const existing = await prisma.user.findUnique({
-        where: { email: user.email.toLowerCase() },
-        select: { estado: true },
+        where: { email },
+        select: { id: true, estado: true },
       });
-      return existing?.estado === "ACTIVO";
+      if (existing) return existing.estado === "ACTIVO";
+
+      // Si no existe: crear solo si es dominio @sercomsoluciones.es
+      if (!email.endsWith("@sercomsoluciones.es")) return false;
+      try {
+        await prisma.user.create({
+          data: { email, name: user.name || email, estado: "ACTIVO" },
+        });
+        return true;
+      } catch {
+        return false;
+      }
     },
     async jwt({ token }) {
       if (token.email) {
