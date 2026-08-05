@@ -1,9 +1,10 @@
 "use client";
 
 import { useTransition } from "react";
+import parse from "html-react-parser";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatFechaCorta } from "@/lib/format";
+import { formatFechaCorta, formatFecha } from "@/lib/format";
 import { archivarComunicado, marcarImportante } from "@/app/(portal)/comunicados/actions";
 
 export type Comunicado = {
@@ -43,12 +44,14 @@ export function ListadoComunicados({
                 ) : null}
               </div>
               <p className="text-xs text-muted-foreground">
-                {c.autor.name} · {formatFechaCorta(c.createdAt)}
+                {c.autor.name} · {formatFecha(c.createdAt)} a las {c.createdAt.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
               </p>
             </div>
           </div>
 
-          <p className="mb-3 whitespace-pre-wrap text-sm text-foreground">{c.contenido}</p>
+          <div className="prose prose-sm mb-3 text-sm text-foreground">
+            {parse(c.contenido)}
+          </div>
 
           {puedeEditar ? (
             <div className="flex gap-2">

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { EditorComunicado } from "@/components/comunicados/editor";
 import { crearComunicado } from "@/app/(portal)/comunicados/actions";
 
 export function FormularioNuevoComunicado() {
@@ -47,14 +48,7 @@ export function FormularioNuevoComunicado() {
 
       <label className="flex flex-col gap-1 text-sm">
         Contenido
-        <textarea
-          required
-          value={contenido}
-          onChange={(e) => setContenido(e.target.value)}
-          placeholder="Contenido del comunicado..."
-          rows={4}
-          className="rounded-[var(--radius-control)] border border-border-strong px-3 py-2"
-        />
+        <EditorComunicado value={contenido} onChange={setContenido} />
       </label>
 
       <label className="flex items-center gap-2">
