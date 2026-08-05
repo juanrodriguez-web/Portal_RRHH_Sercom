@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/authz";
+import { PERMISSIONS } from "@/lib/permissions";
+import { getUserPermissionCodes } from "@/lib/authz";
 import {
   computeEstadoJornada,
   getAccionEsperada,
@@ -12,12 +14,14 @@ import { prisma } from "@/lib/prisma";
 import { getResumenSaldo } from "@/lib/vacaciones";
 import { RelojFichaje } from "@/components/fichajes/reloj-fichaje";
 import { AvisoFichaje } from "@/components/fichajes/aviso-fichaje";
+import { ListadoComunicados } from "@/components/comunicados/listado";
 import { Card } from "@/components/ui/card";
 import { formatFecha } from "@/lib/format";
 
 export default async function InicioPage() {
   const user = await requireUser();
   const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+  const permisos = await getUserPermissionCodes(user.id);
 
   const ahora = new Date();
   const jornada = await getJornadaVigente(user.id, ahora);
@@ -28,6 +32,14 @@ export default async function InicioPage() {
 
   const resumenSaldo = await getResumenSaldo(user.id, ahora.getUTCFullYear());
   const disponibles = resumenSaldo.saldoId ? resumenSaldo.disponible : null;
+
+  const comunicados = permisos.has(PERMISSIONS.verComunicados)
+    ? await prisma.comunicado.findMany({
+        where: { archivado: false },
+        orderBy: { createdAt: "desc" },
+        include: { autor: { select: { name: true } } },
+      })
+    : [];
 
   const hora = ahora.getHours();
   const saludo = hora < 13 ? "Buenos días" : hora < 20 ? "Buenas tardes" : "Buenas noches";
@@ -86,6 +98,18 @@ export default async function InicioPage() {
           </Link>
         </Card>
       </div>
+
+      {permisos.has(PERMISSIONS.verComunicados) && (
+        <div>
+          <h2 className="font-bold text-foreground">Comunicados</h2>
+          <div className="mt-3">
+            <ListadoComunicados
+              comunicados={comunicados}
+              puedeEditar={permisos.has(PERMISSIONS.crearComunicados)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
