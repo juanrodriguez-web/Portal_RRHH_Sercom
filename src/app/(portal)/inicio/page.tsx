@@ -15,6 +15,7 @@ import { getResumenSaldo } from "@/lib/vacaciones";
 import { RelojFichaje } from "@/components/fichajes/reloj-fichaje";
 import { AvisoFichaje } from "@/components/fichajes/aviso-fichaje";
 import { ListadoComunicados } from "@/components/comunicados/listado";
+import { FormularioNuevoComunicado } from "@/components/comunicados/formulario-nuevo";
 import { Card } from "@/components/ui/card";
 import { formatFecha } from "@/lib/format";
 
@@ -100,9 +101,15 @@ export default async function InicioPage() {
       </div>
 
       {permisos.has(PERMISSIONS.verComunicados) && (
-        <div>
+        <div className="space-y-4">
           <h2 className="font-bold text-foreground">Comunicados</h2>
-          <div className="mt-3">
+          {permisos.has(PERMISSIONS.crearComunicados) && (
+            <Card>
+              <h3 className="mb-3 font-semibold text-foreground">Crear comunicado</h3>
+              <FormularioNuevoComunicado />
+            </Card>
+          )}
+          <div>
             <ListadoComunicados
               comunicados={comunicados}
               puedeEditar={permisos.has(PERMISSIONS.crearComunicados)}
