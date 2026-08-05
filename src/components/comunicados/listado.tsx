@@ -37,7 +37,7 @@ export function ListadoComunicados({
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-foreground">{c.titulo}</h3>
                 {c.importante ? (
-                  <Badge tone="warning" className="text-xs">
+                  <Badge tone="warning">
                     Importante
                   </Badge>
                 ) : null}
