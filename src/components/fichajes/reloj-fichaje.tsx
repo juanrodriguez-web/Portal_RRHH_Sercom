@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ export function RelojFichaje({
   minutosTrabajadosInicial: number;
   marcacionesDelDia?: Array<{ tipo: string; tramo: number }>;
 }) {
+  const router = useRouter();
   const [ahora, setAhora] = useState<Date | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +59,11 @@ export function RelojFichaje({
     setError(null);
     startTransition(async () => {
       const res = await marcarFichaje();
-      if (!res.ok) setError(res.error);
+      if (!res.ok) {
+        setError(res.error);
+      } else {
+        router.refresh();
+      }
     });
   }
 
