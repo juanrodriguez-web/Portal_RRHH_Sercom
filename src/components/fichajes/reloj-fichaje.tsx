@@ -36,6 +36,12 @@ export function RelojFichaje({
 
   const estado = ESTADO_LABEL[estadoInicial];
 
+  const getButtonVariant = (tipoAccion: string) => {
+    if (tipoAccion === "ENTRADA") return "success";
+    if (tipoAccion === "SALIDA") return "warning";
+    return "primary";
+  };
+
   function handleClick() {
     setError(null);
     startTransition(async () => {
@@ -63,7 +69,7 @@ export function RelojFichaje({
 
         {accion ? (
           <Button
-            variant="primary"
+            variant={getButtonVariant(accion.tipo)}
             onClick={handleClick}
             disabled={pending}
             className="px-8 py-6 text-lg font-bold rounded-lg"
