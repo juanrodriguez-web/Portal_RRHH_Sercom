@@ -64,20 +64,33 @@ export function AvisoFichaje({
   }
 
   async function activarAvisos() {
-    const reg = await navigator.serviceWorker.ready;
-    const permiso = await Notification.requestPermission();
-    if (permiso !== "granted") return;
-    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!publicKey) return;
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey),
-    });
-    const json = sub.toJSON();
-    if (json.endpoint && json.keys?.p256dh && json.keys?.auth) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const permiso = await Notification.requestPermission();
+      if (permiso !== "granted") {
+        alert("Necesitas permitir notificaciones para recibir avisos de fichaje");
+        return;
+      }
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!publicKey) {
+        alert("Claves VAPID no configuradas");
+        return;
+      }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+      const json = sub.toJSON();
+      if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
+        alert("Error: datos de suscripción incompletos");
+        return;
+      }
       await suscribirPush({ endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } });
+      setPushEstado("activo");
+      alert("✓ Avisos de fichaje activados");
+    } catch (err) {
+      alert(`Error al activar avisos: ${err}`);
     }
-    setPushEstado("activo");
   }
 
   return (
