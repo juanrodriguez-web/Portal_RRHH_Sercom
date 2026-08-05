@@ -38,8 +38,8 @@ export async function GET() {
     }
 
     await enviarPushAUsuario(user.id, {
-      titulo: "Fichaje pendiente",
-      cuerpo: `¿Ya fichaste tu ${accion.etiqueta.toLowerCase()}?`,
+      title: "Fichaje pendiente",
+      body: `¿Ya fichaste tu ${accion.etiqueta.toLowerCase()}?`,
     });
 
     return NextResponse.json({
