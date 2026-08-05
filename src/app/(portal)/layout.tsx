@@ -4,7 +4,7 @@ import { getUserPermissionCodes } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
 import { Sidebar, type NavItem } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
-import { ClockIcon, HomeIcon, CalendarIcon, ShieldIcon } from "@/components/ui/icons";
+import { ClockIcon, HomeIcon, CalendarIcon, ShieldIcon, BellIcon } from "@/components/ui/icons";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -18,6 +18,9 @@ export default async function PortalLayout({ children }: { children: React.React
   }
   if (permisos.has(PERMISSIONS.solicitarVacaciones) || permisos.has(PERMISSIONS.verVacacionesGlobal)) {
     general.push({ href: "/vacaciones", label: "Vacaciones", icon: <CalendarIcon /> });
+  }
+  if (permisos.has(PERMISSIONS.verComunicados)) {
+    general.push({ href: "/comunicados", label: "Comunicados", icon: <BellIcon /> });
   }
 
   const rrhh: NavItem[] = [];

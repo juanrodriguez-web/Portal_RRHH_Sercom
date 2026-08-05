@@ -27,6 +27,9 @@ export const PERMISSIONS = {
   gestionarJornadas: "gestionar_jornadas",
   gestionarCalendarios: "gestionar_calendarios",
   verAuditoria: "ver_auditoria",
+
+  verComunicados: "ver_comunicados",
+  crearComunicados: "crear_comunicados",
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -53,6 +56,8 @@ export const PERMISSION_DESCRIPTIONS: Record<PermissionCode, string> = {
   [PERMISSIONS.gestionarJornadas]: "Administrar plantillas y asignaciones de jornada.",
   [PERMISSIONS.gestionarCalendarios]: "Administrar festivos y calendarios.",
   [PERMISSIONS.verAuditoria]: "Consultar el registro de auditoría.",
+  [PERMISSIONS.verComunicados]: "Ver comunicados.",
+  [PERMISSIONS.crearComunicados]: "Crear y gestionar comunicados.",
 };
 
 // Presets de alta de usuario — no son roles en el sentido de autorización,
@@ -64,6 +69,7 @@ export const PERMISSION_GROUPS: Record<string, PermissionCode[]> = {
     PERMISSIONS.solicitarCorreccionPropia,
     PERMISSIONS.solicitarVacaciones,
     PERMISSIONS.cancelarVacacionesPropias,
+    PERMISSIONS.verComunicados,
   ],
   manager: [
     PERMISSIONS.registrarFichajePropio,

@@ -45,6 +45,7 @@ model User {
   solicitudesAprobadas SolicitudAusencia[]     @relation("AprobadorAusencia")
   pushSubscriptions   PushSubscription[]
   recordatorios       RecordatorioFichaje[]
+  comunicados         Comunicado[]             @relation("ComunicadosCreados")
   auditLogs           AuditLog[]
 
   @@index([managerId])
@@ -291,6 +292,26 @@ model RecordatorioFichaje {
   ultimoEnvio DateTime @default(now())
 
   @@unique([userId, fecha, tipo])
+}
+
+// ---------------------------------------------------------------------------
+// Comunicados
+// ---------------------------------------------------------------------------
+
+model Comunicado {
+  id          String   @id @default(cuid())
+  titulo      String
+  contenido   String
+  autorId     String
+  autor       User     @relation("ComunicadosCreados", fields: [autorId], references: [id])
+  importante  Boolean  @default(false)
+  archivado   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([autorId])
+  @@index([archivado])
+  @@index([createdAt])
 }
 
 // ---------------------------------------------------------------------------
