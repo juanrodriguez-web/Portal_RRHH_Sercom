@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "ghost" | "success";
+type Variant = "primary" | "secondary" | "ghost" | "success" | "warning";
 type Size = "sm" | "md";
 
 const VARIANT_CLASSES: Record<Variant, string> = {
@@ -9,6 +9,7 @@ const VARIANT_CLASSES: Record<Variant, string> = {
     "bg-surface border border-border-strong text-foreground hover:bg-background disabled:opacity-50",
   ghost: "text-foreground hover:bg-background disabled:opacity-50",
   success: "bg-success text-white hover:brightness-110 disabled:bg-border-strong disabled:text-muted-foreground",
+  warning: "bg-orange-500 text-white hover:bg-orange-600 disabled:bg-border-strong disabled:text-muted-foreground",
 };
 
 const SIZE_CLASSES: Record<Size, string> = {
