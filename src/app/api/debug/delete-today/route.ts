@@ -2,7 +2,7 @@ import { requireUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function DELETE() {
+export async function POST() {
   try {
     const user = await requireUser();
     const hoy = new Date();
