@@ -20,10 +20,12 @@ export function RelojFichaje({
   estadoInicial,
   accion,
   minutosTrabajadosInicial,
+  marcacionesDelDia = [],
 }: {
   estadoInicial: EstadoJornada;
   accion: AccionFichaje | null;
   minutosTrabajadosInicial: number;
+  marcacionesDelDia?: Array<{ tipo: string; tramo: number }>;
 }) {
   const [ahora, setAhora] = useState<Date | null>(null);
   const [pending, startTransition] = useTransition();
@@ -36,10 +38,18 @@ export function RelojFichaje({
 
   const estado = ESTADO_LABEL[estadoInicial];
 
-  const getButtonVariant = (tipoAccion: string) => {
-    if (tipoAccion === "ENTRADA") return "success";
-    if (tipoAccion === "SALIDA") return "warning";
-    return "primary";
+  const getAccionesSecuencia = () => {
+    const secuencia = [
+      { tipo: "ENTRADA", tramo: 1, etiqueta: "Entrada mañana" },
+      { tipo: "SALIDA", tramo: 1, etiqueta: "Fin mañana" },
+      { tipo: "ENTRADA", tramo: 2, etiqueta: "Entrada tarde" },
+      { tipo: "SALIDA", tramo: 2, etiqueta: "Fin de jornada" },
+    ];
+    return secuencia;
+  };
+
+  const isMarcacionHecha = (tipo: string, tramo: number) => {
+    return marcacionesDelDia.some((m) => m.tipo === tipo && m.tramo === tramo);
   };
 
   function handleClick() {
@@ -49,6 +59,8 @@ export function RelojFichaje({
       if (!res.ok) setError(res.error);
     });
   }
+
+  const acciones = getAccionesSecuencia();
 
   return (
     <Card className="flex flex-col gap-4">
@@ -67,20 +79,24 @@ export function RelojFichaje({
           </p>
         </div>
 
-        {accion ? (
-          <Button
-            variant={getButtonVariant(accion.tipo)}
-            onClick={handleClick}
-            disabled={pending}
-            className="px-8 py-6 text-lg font-bold rounded-lg"
-          >
-            {pending ? "Registrando…" : accion.etiqueta}
-          </Button>
-        ) : (
-          <div className="flex items-center">
-            <p className="text-sm font-medium text-muted-foreground">No hay ninguna acción pendiente.</p>
-          </div>
-        )}
+        <div className="flex flex-wrap gap-3 items-center">
+          {acciones.map((a) => {
+            const hecha = isMarcacionHecha(a.tipo, a.tramo);
+            const esLaSiguiente = accion && accion.tipo === a.tipo && accion.tramo === a.tramo;
+
+            return (
+              <Button
+                key={`${a.tipo}-${a.tramo}`}
+                variant={esLaSiguiente ? "primary" : "secondary"}
+                onClick={esLaSiguiente ? handleClick : undefined}
+                disabled={!esLaSiguiente || pending}
+                className="px-4 py-2 text-sm font-bold rounded-lg"
+              >
+                {hecha ? "✓ " : ""}{a.etiqueta}
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       {error ? <p className="text-sm text-danger">{error}</p> : null}

@@ -67,6 +67,7 @@ export default async function FichajesPage({
             estadoInicial={estado}
             accion={accion}
             minutosTrabajadosInicial={minutosTrabajados(marcacionesHoy)}
+            marcacionesDelDia={marcacionesHoy.map((m) => ({ tipo: m.tipo, tramo: m.tramo }))}
           />
         ) : (
           <Card>
