@@ -65,30 +65,45 @@ export function AvisoFichaje({
 
   async function activarAvisos() {
     try {
+      console.log("1. Iniciando activación de avisos...");
       const reg = await navigator.serviceWorker.ready;
+      console.log("2. Service Worker listo");
+
       const permiso = await Notification.requestPermission();
+      console.log("3. Permiso de notificaciones:", permiso);
       if (permiso !== "granted") {
         alert("Necesitas permitir notificaciones para recibir avisos de fichaje");
         return;
       }
+
       const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      console.log("4. Clave VAPID pública:", publicKey ? "✓" : "✗");
       if (!publicKey) {
         alert("Claves VAPID no configuradas");
         return;
       }
+
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
+      console.log("5. Suscripción push creada");
+
       const json = sub.toJSON();
+      console.log("6. Datos de suscripción:", { endpoint: json.endpoint?.substring(0, 50), keys: !!json.keys });
       if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
         alert("Error: datos de suscripción incompletos");
         return;
       }
+
+      console.log("7. Guardando en servidor...");
       await suscribirPush({ endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } });
+      console.log("8. ✓ Guardado en servidor");
+
       setPushEstado("activo");
       alert("✓ Avisos de fichaje activados");
     } catch (err) {
+      console.error("ERROR:", err);
       alert(`Error al activar avisos: ${err}`);
     }
   }
