@@ -38,19 +38,20 @@ export function RelojFichaje({
 
   const estado = ESTADO_LABEL[estadoInicial];
 
-  const getAccionesSecuencia = () => {
-    const secuencia = [
-      { tipo: "ENTRADA", tramo: 1, etiqueta: "Entrada mañana" },
-      { tipo: "SALIDA", tramo: 1, etiqueta: "Fin mañana" },
-      { tipo: "ENTRADA", tramo: 2, etiqueta: "Entrada tarde" },
-      { tipo: "SALIDA", tramo: 2, etiqueta: "Fin de jornada" },
-    ];
-    return secuencia;
-  };
+  const secuencia = [
+    { tipo: "ENTRADA", tramo: 1, etiqueta: "Entrada mañana" },
+    { tipo: "SALIDA", tramo: 1, etiqueta: "Fin mañana" },
+    { tipo: "ENTRADA", tramo: 2, etiqueta: "Entrada tarde" },
+    { tipo: "SALIDA", tramo: 2, etiqueta: "Fin de jornada" },
+  ];
 
   const isMarcacionHecha = (tipo: string, tramo: number) => {
     return marcacionesDelDia.some((m) => m.tipo === tipo && m.tramo === tramo);
   };
+
+  const primerNoHecho = secuencia.findIndex((a) => !isMarcacionHecha(a.tipo, a.tramo));
+  const botonesMostrados = primerNoHecho >= 0 ? [primerNoHecho, primerNoHecho + 1] : [secuencia.length - 1];
+  const accionesVisibles = botonesMostrados.map((i) => secuencia[i]).filter(Boolean);
 
   function handleClick() {
     setError(null);
@@ -59,8 +60,6 @@ export function RelojFichaje({
       if (!res.ok) setError(res.error);
     });
   }
-
-  const acciones = getAccionesSecuencia();
 
   return (
     <Card className="flex flex-col gap-4">
@@ -79,18 +78,18 @@ export function RelojFichaje({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3 items-center">
-          {acciones.map((a) => {
+        <div className="flex gap-3 items-center">
+          {accionesVisibles.map((a, idx) => {
+            const esActivo = idx === 0;
             const hecha = isMarcacionHecha(a.tipo, a.tramo);
-            const esLaSiguiente = accion && accion.tipo === a.tipo && accion.tramo === a.tramo;
 
             return (
               <Button
                 key={`${a.tipo}-${a.tramo}`}
-                variant={esLaSiguiente ? "primary" : "secondary"}
-                onClick={esLaSiguiente ? handleClick : undefined}
-                disabled={!esLaSiguiente || pending}
-                className="px-4 py-2 text-sm font-bold rounded-lg"
+                variant={esActivo && !hecha ? "primary" : "secondary"}
+                onClick={esActivo && !hecha ? handleClick : undefined}
+                disabled={hecha || pending}
+                className="px-6 py-3 text-sm font-bold rounded-lg"
               >
                 {hecha ? "✓ " : ""}{a.etiqueta}
               </Button>
