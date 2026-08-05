@@ -2,7 +2,7 @@ import { requireUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function POST() {
+export async function GET() {
   try {
     const user = await requireUser();
     const hoy = new Date();
