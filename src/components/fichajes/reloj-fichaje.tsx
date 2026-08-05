@@ -85,22 +85,26 @@ export function RelojFichaje({
         </div>
 
         <div className="flex gap-3 items-center">
-          {accionesVisibles.map((a, idx) => {
-            const esActivo = idx === 0;
-            const hecha = isMarcacionHecha(a.tipo, a.tramo);
+          {accion ? (
+            accionesVisibles.map((a, idx) => {
+              const esActivo = idx === 0;
+              const hecha = isMarcacionHecha(a.tipo, a.tramo);
 
-            return (
-              <Button
-                key={`${a.tipo}-${a.tramo}`}
-                variant={esActivo && !hecha ? "primary" : "secondary"}
-                onClick={esActivo && !hecha ? handleClick : undefined}
-                disabled={hecha || pending}
-                className="px-6 py-3 text-sm font-bold rounded-lg"
-              >
-                {hecha ? "✓ " : ""}{a.etiqueta}
-              </Button>
-            );
-          })}
+              return (
+                <Button
+                  key={`${a.tipo}-${a.tramo}`}
+                  variant={esActivo && !hecha ? "primary" : "secondary"}
+                  onClick={esActivo && !hecha ? handleClick : undefined}
+                  disabled={hecha || pending}
+                  className="px-6 py-3 text-sm font-bold rounded-lg"
+                >
+                  {hecha ? "✓ " : ""}{a.etiqueta}
+                </Button>
+              );
+            })
+          ) : (
+            <p className="text-sm font-medium text-muted-foreground">Jornada finalizada.</p>
+          )}
         </div>
       </div>
 
