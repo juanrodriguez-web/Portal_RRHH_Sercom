@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/avisos-fichaje",
-      "schedule": "0 7 * * 1-5"
+      "schedule": "30 10 * * 1-5"
     }
   ]
 }
