@@ -62,7 +62,7 @@ export function RelojFichaje({
       if (!res.ok) {
         setError(res.error);
       } else {
-        router.refresh();
+        setTimeout(() => window.location.reload(), 500);
       }
     });
   }

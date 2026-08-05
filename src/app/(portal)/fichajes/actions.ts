@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission, AuthzError } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
@@ -63,6 +63,7 @@ export async function marcarFichaje(): Promise<MarcarFichajeResult> {
     throw err;
   }
 
+  revalidateTag("marcaciones");
   revalidatePath("/fichajes");
   revalidatePath("/inicio");
   return { ok: true };
