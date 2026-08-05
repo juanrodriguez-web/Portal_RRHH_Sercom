@@ -34,7 +34,10 @@ export default async function InicioPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <AvisoFichaje accionPendiente={!!accion} etiquetaAccion={accion?.etiqueta} />
+      <AvisoFichaje
+        accionPendiente={accion?.tipo === "SALIDA" && accion?.tramo === 1}
+        etiquetaAccion={accion?.tipo === "SALIDA" && accion?.tramo === 1 ? accion.etiqueta : undefined}
+      />
 
       <Card className="flex items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-tint-strong text-lg font-bold text-brand">
