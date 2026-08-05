@@ -146,7 +146,7 @@ async function main() {
   await asignarGrupo(carlos.id, "manager");
   await asignarGrupo(ana.id, "empleado");
   await asignarGrupo(marcos.id, "empleado");
-  await asignarGrupo(juan.id, "empleado");
+  await asignarGrupo(juan.id, "rrhh");
 
   console.log("Asignando jornadas vigentes…");
   const inicioAnio = new Date(Date.UTC(ANIO, 0, 1));
