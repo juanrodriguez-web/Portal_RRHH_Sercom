@@ -1,13 +1,16 @@
+import Image from "next/image";
+
 export function Logo({ className }: { className?: string }) {
   return (
     <div className={className}>
-      <div className="text-2xl font-extrabold leading-none tracking-tight">
-        <span className="text-foreground">ser</span>
-        <span className="text-brand">com</span>
-      </div>
-      <div className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-brand">
-        soluciones
-      </div>
+      <Image
+        src="/logo-sercom.jpg"
+        alt="Sercom Soluciones"
+        width={200}
+        height={80}
+        priority
+        className="h-auto w-full max-w-[120px]"
+      />
     </div>
   );
 }
