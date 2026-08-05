@@ -14,6 +14,8 @@ import { RelojFichaje } from "@/components/fichajes/reloj-fichaje";
 import { HistoricoTable } from "@/components/fichajes/historico-table";
 import { Card } from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 function rangoFechas(rango: "semana" | "mes") {
   const hasta = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()));
   const desde = new Date(hasta);
