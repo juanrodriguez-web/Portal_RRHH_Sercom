@@ -126,6 +126,11 @@ async function main() {
     create: { email: "marcos.ibanez@sercom.es", name: "Marcos Ibáñez", departamento: "Administración", managerId: carlos.id },
     update: { managerId: carlos.id },
   });
+  const juan = await prisma.user.upsert({
+    where: { email: "juan.rodriguez@sercomsoluciones.es" },
+    create: { email: "juan.rodriguez@sercomsoluciones.es", name: "Juan Gastón Rodríguez", departamento: "IT" },
+    update: {},
+  });
 
   console.log("Asignando permisos por grupo (empleado/manager/rrhh)…");
   const asignarGrupo = async (userId: string, grupo: keyof typeof PERMISSION_GROUPS) => {
@@ -141,6 +146,7 @@ async function main() {
   await asignarGrupo(carlos.id, "manager");
   await asignarGrupo(ana.id, "empleado");
   await asignarGrupo(marcos.id, "empleado");
+  await asignarGrupo(juan.id, "empleado");
 
   console.log("Asignando jornadas vigentes…");
   const inicioAnio = new Date(Date.UTC(ANIO, 0, 1));
@@ -152,9 +158,10 @@ async function main() {
   };
   // Laura (RRHH): 37.5h partida
   await asignarJornada(laura.id, jornada37_5.id);
-  // Ana y Marcos (empleados): 37.5h partida
+  // Ana, Marcos y Juan (empleados): 37.5h partida
   await asignarJornada(ana.id, jornada37_5.id);
   await asignarJornada(marcos.id, jornada37_5.id);
+  await asignarJornada(juan.id, jornada37_5.id);
   // Carlos (manager/comercial): 40h
   await asignarJornada(carlos.id, jornada40.id);
 
