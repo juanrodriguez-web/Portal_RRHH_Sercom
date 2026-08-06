@@ -1,15 +1,10 @@
 import NextAuth from "next-auth";
-import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { PERMISSION_GROUPS } from "@/lib/permissions";
 
-// Acceso de demo — igual de espíritu que el selector "Simular acceso como"
-// del prototipo (Anexo C: "exclusivamente demostrativo"). Permite entrar
-// como cualquier usuario semilla por email, SIN contraseña, mientras no
-// esté configurado el App Registration de Entra ID. Nunca debe activarse
-// en el despliegue real (por eso requiere la variable explícita).
-const demoLoginHabilitado = process.env.AUTH_ENABLE_DEMO_LOGIN === "true";
+// TEMP: Demo login habilitado para testing sin Microsoft 365
+const demoLoginHabilitado = true;
 
 declare module "next-auth" {
   interface Session {
@@ -24,22 +19,17 @@ declare module "next-auth" {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    MicrosoftEntraID,
-    ...(demoLoginHabilitado
-      ? [
-          Credentials({
-            id: "demo",
-            name: "Demo",
-            credentials: { email: { label: "Email", type: "text" } },
-            async authorize(credentials) {
-              const email = String(credentials?.email ?? "").toLowerCase();
-              const user = await prisma.user.findUnique({ where: { email } });
-              if (!user || user.estado !== "ACTIVO") return null;
-              return { id: user.id, email: user.email, name: user.name };
-            },
-          }),
-        ]
-      : []),
+    Credentials({
+      id: "demo",
+      name: "Demo Login",
+      credentials: { email: { label: "Email", type: "text" } },
+      async authorize(credentials) {
+        const email = String(credentials?.email ?? "").toLowerCase();
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user || user.estado !== "ACTIVO") return null;
+        return { id: user.id, email: user.email, name: user.name };
+      },
+    }),
   ],
   session: { strategy: "jwt" },
   pages: {
