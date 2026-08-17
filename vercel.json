@@ -1,4 +1,5 @@
 {
+  "comment": "Force redeployment 2026-08-17 16:58",
   "crons": [
     {
       "path": "/api/cron/avisos-fichaje",
