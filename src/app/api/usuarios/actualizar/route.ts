@@ -1,14 +1,17 @@
-import { getSession } from "@/lib/auth";
-import { requirePermission } from "@/lib/authz";
+import { auth } from "@/lib/auth";
+import { getUserPermissionCodes } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user?.id) return new Response("Unauthorized", { status: 401 });
 
   try {
-    await requirePermission(PERMISSIONS.editarUsuariosRrhh);
+    const permisos = await getUserPermissionCodes(session.user.id);
+    if (!permisos.has(PERMISSIONS.editarUsuariosRrhh)) {
+      return new Response("Forbidden", { status: 403 });
+    }
   } catch {
     return new Response("Forbidden", { status: 403 });
   }
