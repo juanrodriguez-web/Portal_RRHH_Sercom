@@ -1,8 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
-import { signIn } from "@/lib/auth";
 import type { User } from "@/generated/prisma/client";
+import { signInMicrosoft, signInDemo } from "./login-actions";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 
@@ -33,12 +33,7 @@ export default function LoginForm({
           </p>
         ) : null}
 
-        <form
-          className="mt-6"
-          action={async () => {
-            await signIn("microsoft-entra-id", { redirectTo: "/inicio" });
-          }}
-        >
+        <form className="mt-6" action={signInMicrosoft}>
           <Button
             type="submit"
             className="w-full"
@@ -83,10 +78,7 @@ export default function LoginForm({
             <form
               className="flex flex-col gap-2"
               action={async (formData) => {
-                await signIn("demo", {
-                  email: formData.get("email"),
-                  redirectTo: "/inicio",
-                });
+                await signInDemo(formData.get("email") as string);
               }}
             >
               <select
