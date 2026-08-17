@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { getUserPermissionCodes } from "@/lib/authz";
-import { PERMISSIONS } from "@/lib/permissions";
+import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
   try {
     const permisos = await getUserPermissionCodes(session.user.id);
-    if (!permisos.has(PERMISSIONS.editarUsuariosRrhh)) {
+    if (!permisos.has(PERMISSIONS.gestionarUsuariosRrhh)) {
       return new Response("Forbidden", { status: 403 });
     }
   } catch {
@@ -43,17 +43,17 @@ export async function POST(req: Request) {
       // Audit log
       await prisma.auditLog.create({
         data: {
-          actor: session.user.id,
+          actorId: session.user.id,
           accion: "ACTUALIZAR_USUARIO",
           entidad: "User",
           entidadId: usuarioId,
           motivo: "Actualización de atributos RRHH",
-          before: {
+          valoresAntes: {
             departamento: user.departamento,
             managerId: user.managerId,
             estado: user.estado,
           },
-          after: {
+          valoresDespues: {
             departamento: departamento ?? user.departamento,
             managerId: managerId ?? user.managerId,
             estado: estado ?? user.estado,
@@ -64,34 +64,7 @@ export async function POST(req: Request) {
 
     // Asignar grupo de permisos si se envía
     if (grupoPermisos && grupoPermisos !== "") {
-      const PERMISSION_GROUPS: Record<string, string[]> = {
-        empleado: ["registrarFichajePropio", "verOwnFichajes", "solicitudAusenciasPropio"],
-        manager: [
-          "registrarFichajePropio",
-          "verOwnFichajes",
-          "solicitudAusenciasPropio",
-          "verEquipoFichajes",
-          "aprobarVacacionesEquipo",
-          "verEquipoVacaciones",
-        ],
-        rrhh: [
-          "registrarFichajePropio",
-          "verOwnFichajes",
-          "solicitudAusenciasPropio",
-          "verEquipoFichajes",
-          "aprobarVacacionesEquipo",
-          "verEquipoVacaciones",
-          "verUsuarios",
-          "editarUsuariosRrhh",
-          "gestionarUsuariosRrhh",
-          "verFichajesTodos",
-          "exportarFichajes",
-          "gestionarJornadas",
-          "exportarVacaciones",
-        ],
-      };
-
-      const permissionCodes = PERMISSION_GROUPS[grupoPermisos] || [];
+      const permissionCodes = PERMISSION_GROUPS[grupoPermisos as keyof typeof PERMISSION_GROUPS] || [];
 
       // Borrar permisos existentes
       await prisma.userPermission.deleteMany({ where: { userId: usuarioId } });
@@ -106,13 +79,12 @@ export async function POST(req: Request) {
       // Audit log para permisos
       await prisma.auditLog.create({
         data: {
-          actor: session.user.id,
+          actorId: session.user.id,
           accion: "ASIGNAR_GRUPO_PERMISOS",
           entidad: "UserPermission",
           entidadId: usuarioId,
           motivo: `Asignación a grupo "${grupoPermisos}"`,
-          before: { grupoAnterior: null },
-          after: { grupoNuevo: grupoPermisos },
+          valoresDespues: { grupoNuevo: grupoPermisos },
         },
       });
     }
