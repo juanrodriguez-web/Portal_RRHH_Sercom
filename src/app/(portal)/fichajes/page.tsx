@@ -63,8 +63,8 @@ export default async function FichajesPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+    <div className="space-y-6">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-[380px_1fr]">
         {jornada ? (
           <RelojFichaje
             estadoInicial={estado}
@@ -81,18 +81,18 @@ export default async function FichajesPage({
         )}
 
         <Card>
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-bold text-foreground">Histórico · últimos {rangoSeleccionado === "mes" ? "30 días" : "7 días"}</h2>
-            <div className="flex gap-2 text-sm">
+            <div className="flex gap-1.5 text-sm">
               <a
                 href="/fichajes?rango=semana"
-                className={`rounded-full px-3 py-1 ${rangoSeleccionado === "semana" ? "bg-brand-tint text-brand font-semibold" : "text-muted-foreground"}`}
+                className={`rounded-[var(--radius-control)] px-3 py-1.5 font-medium transition-colors ${rangoSeleccionado === "semana" ? "bg-brand-tint text-brand" : "text-muted-foreground hover:text-foreground hover:bg-background"}`}
               >
                 Semana
               </a>
               <a
                 href="/fichajes?rango=mes"
-                className={`rounded-full px-3 py-1 ${rangoSeleccionado === "mes" ? "bg-brand-tint text-brand font-semibold" : "text-muted-foreground"}`}
+                className={`rounded-[var(--radius-control)] px-3 py-1.5 font-medium transition-colors ${rangoSeleccionado === "mes" ? "bg-brand-tint text-brand" : "text-muted-foreground hover:text-foreground hover:bg-background"}`}
               >
                 Mes
               </a>
