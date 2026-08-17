@@ -14,7 +14,7 @@ export default async function PanelRRHHPage() {
   // Actividad reciente: últimas 5 acciones de audit
   const recentActivity = await prisma.auditLog.findMany({
     take: 5,
-    orderBy: { timestamp: "desc" },
+    orderBy: { createdAt: "desc" },
     include: { actor: { select: { name: true } } },
   });
 
@@ -83,7 +83,7 @@ export default async function PanelRRHHPage() {
                 <div className="text-sm">
                   <p className="font-medium text-foreground">{log.accion}</p>
                   <p className="text-xs text-muted-foreground">
-                    {log.actor?.name} • {new Date(log.timestamp).toLocaleString("es-ES")}
+                    {log.actor?.name} • {new Date(log.createdAt).toLocaleString("es-ES")}
                   </p>
                   {log.motivo && <p className="text-xs text-muted-foreground">{log.motivo}</p>}
                 </div>
