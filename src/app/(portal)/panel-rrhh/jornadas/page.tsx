@@ -3,6 +3,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { FilaJornada } from "@/components/panel-rrhh/fila-jornada";
 import { FormularioNuevaJornada } from "@/components/panel-rrhh/formulario-nueva-jornada";
 
@@ -15,6 +16,12 @@ export default async function JornadasPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb
+        items={[
+          { label: "Panel RRHH", href: "/panel-rrhh" },
+          { label: "Jornadas" },
+        ]}
+      />
       <Card>
         <div className="mb-6">
           <h2 className="mb-4 font-bold text-foreground">Crear nueva jornada</h2>

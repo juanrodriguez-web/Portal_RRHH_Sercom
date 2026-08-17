@@ -3,6 +3,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { getResumenSaldo } from "@/lib/vacaciones";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { SaldoCard } from "@/components/vacaciones/saldo-card";
 import { SolicitarForm } from "@/components/vacaciones/solicitar-form";
 import { SolicitudesTable, type FilaSolicitud } from "@/components/vacaciones/solicitudes-table";
@@ -58,7 +59,9 @@ export default async function VacacionesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-6">
+      <Breadcrumb items={[{ label: "Vacaciones" }]} />
+
       <div className="grid gap-6 lg:grid-cols-2">
         <SaldoCard
           totalAnual={resumen.totalAnual + resumen.arrastre}

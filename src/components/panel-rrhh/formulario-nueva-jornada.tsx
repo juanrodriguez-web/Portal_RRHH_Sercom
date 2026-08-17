@@ -2,16 +2,20 @@
 
 import { useState, useTransition } from "react";
 import { crearJornada } from "@/app/(portal)/panel-rrhh/jornadas/actions";
+import { Button } from "@/components/ui/button";
+
+type TabType = "info" | "horarios" | "preview";
 
 export function FormularioNuevaJornada() {
+  const [activeTab, setActiveTab] = useState<TabType>("info");
   const [nombre, setNombre] = useState("");
   const [tipo, setTipo] = useState("PARTIDA");
   const [horasSemana, setHorasSemana] = useState("");
   const [tieneTramo2, setTieneTramo2] = useState(true);
-  const [tramo1Inicio, setTramo1Inicio] = useState("");
-  const [tramo1Fin, setTramo1Fin] = useState("");
-  const [tramo2Inicio, setTramo2Inicio] = useState("");
-  const [tramo2Fin, setTramo2Fin] = useState("");
+  const [tramo1Inicio, setTramo1Inicio] = useState("09:00");
+  const [tramo1Fin, setTramo1Fin] = useState("14:00");
+  const [tramo2Inicio, setTramo2Inicio] = useState("15:00");
+  const [tramo2Fin, setTramo2Fin] = useState("18:00");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -19,6 +23,36 @@ export function FormularioNuevaJornada() {
     if (!hh_mm) return 0;
     const [h, m] = hh_mm.split(":").map((x) => parseInt(x, 10));
     return h * 60 + (m || 0);
+  };
+
+  const renderPreview = () => {
+    const t1h = minutosDe(tramo1Inicio);
+    const t1f = minutosDe(tramo1Fin);
+    const t2h = tieneTramo2 ? minutosDe(tramo2Inicio) : 0;
+    const t2f = tieneTramo2 ? minutosDe(tramo2Fin) : 0;
+
+    const horas1 = ((t1f - t1h) / 60).toFixed(1);
+    const horas2 = tieneTramo2 ? ((t2f - t2h) / 60).toFixed(1) : 0;
+    const totalHoras = (parseFloat(horas1) + parseFloat(horas2 as any)).toFixed(1);
+
+    return (
+      <div className="space-y-3 text-sm">
+        <div className="rounded-[var(--radius-control)] border border-border bg-background p-4">
+          <h4 className="font-semibold text-foreground mb-2">{nombre || "Nueva jornada"}</h4>
+          <div className="space-y-1.5 text-muted-foreground">
+            <p>Tipo: <span className="font-medium text-foreground">{tipo}</span></p>
+            <p>Tramo 1: <span className="font-medium text-foreground">{tramo1Inicio} - {tramo1Fin}</span> ({horas1}h)</p>
+            {tieneTramo2 && (
+              <p>Tramo 2: <span className="font-medium text-foreground">{tramo2Inicio} - {tramo2Fin}</span> ({horas2}h)</p>
+            )}
+            <p className="pt-2 border-t border-border">
+              Total: <span className="font-bold text-foreground text-base">{totalHoras}h</span>
+              {horasSemana && <span className="ml-2 text-muted-foreground">(definido: {horasSemana}h)</span>}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   function handleSubmit(e: React.FormEvent) {
@@ -45,131 +79,189 @@ export function FormularioNuevaJornada() {
         // Reset form
         setNombre("");
         setHorasSemana("");
-        setTramo1Inicio("");
-        setTramo1Fin("");
-        setTramo2Inicio("");
-        setTramo2Fin("");
+        setTramo1Inicio("09:00");
+        setTramo1Fin("14:00");
+        setTramo2Inicio("15:00");
+        setTramo2Fin("18:00");
         setTipo("PARTIDA");
         setTieneTramo2(true);
+        setActiveTab("info");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al crear jornada");
       }
     });
   }
 
+  const tabs: Array<{ id: TabType; label: string }> = [
+    { id: "info", label: "Info general" },
+    { id: "horarios", label: "Horarios" },
+    { id: "preview", label: "Previsualización" },
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
-      {error && <div className="p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">{error}</div>}
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Nombre *</label>
-          <input
-            type="text"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            placeholder="ej: Jornada partida — 37.5 horas"
-            className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Tipo</label>
-          <select
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
-            className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm"
-          >
-            <option value="COMPLETA">Completa</option>
-            <option value="PARCIAL">Parcial</option>
-            <option value="INTENSIVA">Intensiva</option>
-            <option value="PARTIDA">Partida</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Horas/semana</label>
-          <input
-            type="number"
-            step="0.5"
-            value={horasSemana}
-            onChange={(e) => setHorasSemana(e.target.value)}
-            placeholder="ej: 37.5"
-            className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm"
-          />
-          <p className="text-xs text-muted-foreground mt-1">Opcional si defines horarios específicos</p>
-        </div>
-
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input
-              type="checkbox"
-              checked={tieneTramo2}
-              onChange={(e) => setTieneTramo2(e.target.checked)}
-              className="rounded"
-            />
-            ¿Tiene pausa?
-          </label>
-        </div>
-      </div>
-
-      <div>
-        <p className="text-sm font-medium mb-2">Tramo 1</p>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Inicio</label>
-            <input
-              type="time"
-              value={tramo1Inicio}
-              onChange={(e) => setTramo1Inicio(e.target.value)}
-              className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Fin</label>
-            <input
-              type="time"
-              value={tramo1Fin}
-              onChange={(e) => setTramo1Fin(e.target.value)}
-              className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm"
-            />
-          </div>
-        </div>
-      </div>
-
-      {tieneTramo2 && (
-        <div>
-          <p className="text-sm font-medium mb-2">Tramo 2</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Inicio</label>
-              <input
-                type="time"
-                value={tramo2Inicio}
-                onChange={(e) => setTramo2Inicio(e.target.value)}
-                className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Fin</label>
-              <input
-                type="time"
-                value={tramo2Fin}
-                onChange={(e) => setTramo2Fin(e.target.value)}
-                className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm"
-              />
-            </div>
-          </div>
+      {error && (
+        <div className="p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-[var(--radius-control)] text-red-700 dark:text-red-200 text-sm">
+          {error}
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="px-4 py-2 bg-brand text-white rounded-[var(--radius-control)] font-semibold hover:opacity-90 disabled:opacity-50 transition"
-      >
-        {pending ? "Creando…" : "Crear jornada"}
-      </button>
+      {/* Tab Navigation */}
+      <div className="flex gap-1 border-b border-border">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === tab.id
+                ? "border-brand text-brand"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div className="space-y-4">
+        {activeTab === "info" && (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Nombre *</label>
+              <input
+                type="text"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                placeholder="ej: Jornada partida"
+                className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Tipo</label>
+              <select
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value)}
+                className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+              >
+                <option value="COMPLETA">Completa</option>
+                <option value="PARCIAL">Parcial</option>
+                <option value="INTENSIVA">Intensiva</option>
+                <option value="PARTIDA">Partida</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Horas/semana</label>
+              <input
+                type="number"
+                step="0.5"
+                value={horasSemana}
+                onChange={(e) => setHorasSemana(e.target.value)}
+                placeholder="ej: 37.5"
+                className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Opcional</p>
+            </div>
+
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium h-full items-end mb-2">
+                <input
+                  type="checkbox"
+                  checked={tieneTramo2}
+                  onChange={(e) => setTieneTramo2(e.target.checked)}
+                  className="rounded w-4 h-4 focus:ring-2 focus:ring-brand"
+                />
+                ¿Incluir pausa?
+              </label>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "horarios" && (
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold mb-3">Tramo 1</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Inicio</label>
+                  <input
+                    type="time"
+                    value={tramo1Inicio}
+                    onChange={(e) => setTramo1Inicio(e.target.value)}
+                    className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Fin</label>
+                  <input
+                    type="time"
+                    value={tramo1Fin}
+                    onChange={(e) => setTramo1Fin(e.target.value)}
+                    className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {tieneTramo2 && (
+              <div>
+                <h4 className="text-sm font-semibold mb-3">Tramo 2 (después de pausa)</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Inicio</label>
+                    <input
+                      type="time"
+                      value={tramo2Inicio}
+                      onChange={(e) => setTramo2Inicio(e.target.value)}
+                      className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Fin</label>
+                    <input
+                      type="time"
+                      value={tramo2Fin}
+                      onChange={(e) => setTramo2Fin(e.target.value)}
+                      className="w-full rounded-[var(--radius-control)] border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "preview" && renderPreview()}
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3 pt-2 border-t border-border">
+        <Button type="submit" disabled={pending}>
+          {pending ? "Creando…" : "Crear jornada"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            setActiveTab("info");
+            setNombre("");
+            setHorasSemana("");
+            setTramo1Inicio("09:00");
+            setTramo1Fin("14:00");
+            setTramo2Inicio("15:00");
+            setTramo2Fin("18:00");
+            setTipo("PARTIDA");
+            setTieneTramo2(true);
+            setError("");
+          }}
+        >
+          Cancelar
+        </Button>
+      </div>
     </form>
   );
 }

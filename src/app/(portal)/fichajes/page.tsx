@@ -12,6 +12,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { RelojFichaje } from "@/components/fichajes/reloj-fichaje";
 import { HistoricoTable } from "@/components/fichajes/historico-table";
+import { EquipoSelector } from "@/components/fichajes/equipo-selector";
 import { Card } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
@@ -103,18 +104,7 @@ export default async function FichajesPage({
 
       {puedeVerEquipo ? (
         <Card>
-          <h2 className="mb-4 font-bold text-foreground">Mi equipo hoy</h2>
-          <ul className="flex flex-col gap-2">
-            {equipoResumen.map((e) => (
-              <li key={e.nombre} className="flex items-center justify-between border-b border-border py-2 text-sm last:border-0">
-                <span>{e.nombre}</span>
-                <span className="text-muted-foreground">{e.estado.replaceAll("_", " ").toLowerCase()}</span>
-              </li>
-            ))}
-            {equipoResumen.length === 0 ? (
-              <li className="text-sm text-muted-foreground">No tienes empleados asignados.</li>
-            ) : null}
-          </ul>
+          <EquipoSelector equipoResumen={equipoResumen} />
         </Card>
       ) : null}
 
