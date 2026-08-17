@@ -12,7 +12,10 @@ export default async function LoginPage({
 }) {
   const { error } = await searchParams;
   const usuariosDemo = demoLoginHabilitado
-    ? await prisma.user.findMany({ where: { estado: "ACTIVO" }, orderBy: { name: "asc" } })
+    ? await prisma.user.findMany({
+        where: { estado: "ACTIVO", email: { endsWith: "@sercomsoluciones.es" } },
+        orderBy: { name: "asc" },
+      })
     : [];
 
   return (
