@@ -2,7 +2,7 @@ import { requireUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { OrganigramaViewer } from "@/components/organigrama/viewer";
+import { HierarchyTree } from "@/components/organigrama/hierarchy-tree";
 
 export default async function OrganigramaPage() {
   const user = await requireUser();
@@ -19,16 +19,7 @@ export default async function OrganigramaPage() {
     orderBy: { name: "asc" },
   });
 
-  // Obtener el manager de cada usuario (para mostrar jerarquía)
-  const usuariosConManager = await Promise.all(
-    usuarios.map(async (u) => ({
-      ...u,
-      manager: u.managerId ? await prisma.user.findUnique({ where: { id: u.managerId }, select: { name: true } }) : null,
-    }))
-  );
-
-  // Agrupar por departamento
-  const departamentos = Array.from(new Set(usuariosConManager.map(u => u.departamento).filter((d): d is string => d !== null)));
+  const usuarioActual = usuarios.find(u => u.id === user.id) || usuarios[0];
 
   return (
     <div className="space-y-6">
@@ -36,10 +27,10 @@ export default async function OrganigramaPage() {
 
       <Card className="p-6">
         <h1 className="text-2xl font-bold text-foreground mb-2">Organigrama de la empresa</h1>
-        <p className="text-sm text-muted-foreground">Estructura jerárquica y directorio de contacto</p>
+        <p className="text-sm text-muted-foreground">Tu posición en la jerarquía, cadena de mando y equipo</p>
       </Card>
 
-      <OrganigramaViewer usuarios={usuariosConManager} departamentos={departamentos} />
+      <HierarchyTree usuarioActual={usuarioActual} todos={usuarios} />
     </div>
   );
 }

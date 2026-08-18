@@ -118,3 +118,30 @@ export function SearchIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function UserIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-3 3-5 8-5s8 2 8 5" />
+    </svg>
+  );
+}
+
+export function DownloadIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2" />
+      <polyline points="7 11 12 16 17 11" />
+      <line x1="12" y1="4" x2="12" y2="15" />
+    </svg>
+  );
+}
+
+export function ChevronUpIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M18 15l-6-6-6 6" />
+    </svg>
+  );
+}
