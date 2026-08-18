@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BellIcon } from "@/components/ui/icons";
 import { marcarFichaje } from "@/app/(portal)/fichajes/actions";
@@ -23,6 +24,7 @@ export function AvisoFichaje({
   accionPendiente: boolean;
   etiquetaAccion?: string;
 }) {
+  const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [pushEstado, setPushEstado] = useState<"desconocido" | "disponible" | "activo" | "no-soportado">(
     "desconocido"
@@ -58,8 +60,11 @@ export function AvisoFichaje({
 
   function ficharAhora() {
     startTransition(async () => {
-      await marcarFichaje();
-      setVisible(false);
+      const result = await marcarFichaje();
+      if (result.ok) {
+        setVisible(false);
+        router.refresh();
+      }
     });
   }
 
