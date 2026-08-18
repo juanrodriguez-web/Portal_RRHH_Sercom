@@ -6,38 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Metrica } from "@/components/panel-rrhh/panel-metricas";
 import { AccionRapida } from "@/components/panel-rrhh/acciones-rapidas";
-import { UsersIcon, CalendarIcon, ClockIcon, BarChart3Icon, DownloadIcon, SettingsIcon } from "@/components/ui/icons";
-
-// Icono adicional para estadísticas
-function BarChart3Icon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="3" x2="12" y2="15" />
-      <line x1="19" y1="6" x2="19" y2="15" />
-      <line x1="5" y1="9" x2="5" y2="15" />
-      <path d="M3 20h18" />
-    </svg>
-  );
-}
-
-function DownloadIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2" />
-      <polyline points="7 11 12 16 17 11" />
-      <line x1="12" y1="4" x2="12" y2="15" />
-    </svg>
-  );
-}
-
-function SettingsIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m2.12 2.12l4.24 4.24M1 12h6m6 0h6m-7.78 7.78l-4.24-4.24m-2.12-2.12L4.22 4.22" />
-    </svg>
-  );
-}
+import { UsersIcon, CalendarIcon, DownloadIcon } from "@/components/ui/icons";
 
 export default async function PanelRRHHPage() {
   await requirePermission(PERMISSIONS.verUsuarios);
