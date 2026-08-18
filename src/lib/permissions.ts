@@ -70,6 +70,7 @@ export const PERMISSION_GROUPS: Record<string, PermissionCode[]> = {
     PERMISSIONS.solicitarVacaciones,
     PERMISSIONS.cancelarVacacionesPropias,
     PERMISSIONS.verComunicados,
+    PERMISSIONS.verUsuarios,
   ],
   manager: [
     PERMISSIONS.registrarFichajePropio,
@@ -81,6 +82,11 @@ export const PERMISSION_GROUPS: Record<string, PermissionCode[]> = {
     PERMISSIONS.corregirFichajeEquipo,
     PERMISSIONS.verVacacionesEquipo,
     PERMISSIONS.aprobarVacacionesEquipo,
+    PERMISSIONS.verComunicados,
+    PERMISSIONS.crearComunicados,
+    PERMISSIONS.verUsuarios,
   ],
   rrhh: Object.values(PERMISSIONS),
 };
+
+export const DEFAULT_PERMISSIONS = PERMISSION_GROUPS.empleado;

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
+import type { PermissionCode } from "@/lib/permissions";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -81,6 +82,44 @@ export async function asignarGrupoPermisos(userId: string, grupo: "empleado" | "
     return { ok: true };
   } catch (error: unknown) {
     console.error("Error en asignarGrupoPermisos:", error);
+    const message = error instanceof Error ? error.message : "Error desconocido";
+    return { ok: false, error: `Error al asignar permisos: ${message}` };
+  }
+}
+
+export async function asignarPermisosIndividuales(userId: string, permisos: PermissionCode[]): Promise<ActionResult> {
+  try {
+    const actor = await requirePermission(PERMISSIONS.gestionarUsuariosRrhh);
+
+    const permisosUnicos = Array.from(new Set(permisos));
+
+    await prisma.$transaction(async (tx) => {
+      // Eliminar permisos existentes
+      await tx.userPermission.deleteMany({ where: { userId } });
+
+      // Asignar nuevos permisos
+      for (const code of permisosUnicos) {
+        await tx.userPermission.create({
+          data: { userId, permissionCode: code },
+        });
+      }
+
+      // Auditar
+      await tx.auditLog.create({
+        data: {
+          actorId: actor.id,
+          accion: "ASIGNAR_PERMISOS_USUARIO",
+          entidad: "User",
+          entidadId: userId,
+          valoresDespues: { permisos: permisosUnicos },
+        },
+      });
+    });
+
+    revalidatePath("/panel-rrhh/usuarios");
+    return { ok: true };
+  } catch (error: unknown) {
+    console.error("Error en asignarPermisosIndividuales:", error);
     const message = error instanceof Error ? error.message : "Error desconocido";
     return { ok: false, error: `Error al asignar permisos: ${message}` };
   }
