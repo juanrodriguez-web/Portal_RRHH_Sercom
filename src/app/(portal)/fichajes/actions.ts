@@ -81,51 +81,64 @@ export async function solicitarCorreccion(
   valorPropuestoISO: string,
   motivo: string
 ): Promise<SolicitarCorreccionResult> {
-  const user = await requirePermission(PERMISSIONS.solicitarCorreccionPropia);
+  try {
+    const user = await requirePermission(PERMISSIONS.solicitarCorreccionPropia);
 
-  if (!motivo.trim()) return { ok: false, error: "El motivo es obligatorio." };
+    if (!motivo.trim()) return { ok: false, error: "El motivo es obligatorio." };
 
-  const marcacion = await prisma.marcacion.findUnique({ where: { id: marcacionId } });
-  if (!marcacion || marcacion.userId !== user.id) {
-    return { ok: false, error: "Marcación no encontrada." };
+    const marcacion = await prisma.marcacion.findUnique({ where: { id: marcacionId } });
+    if (!marcacion || marcacion.userId !== user.id) {
+      return { ok: false, error: "Marcación no encontrada." };
+    }
+
+    await prisma.correccionMarcacion.create({
+      data: {
+        marcacionId,
+        valorAnterior: marcacion.timestampServidor,
+        valorPropuesto: new Date(valorPropuestoISO),
+        motivo,
+        solicitanteId: user.id,
+      },
+    });
+
+    revalidatePath("/fichajes");
+    return { ok: true };
+  } catch (error: unknown) {
+    console.error("Error en solicitarCorreccion:", error);
+    const message = error instanceof Error ? error.message : "Error desconocido";
+    return { ok: false, error: `Error al solicitar corrección: ${message}` };
   }
-
-  await prisma.correccionMarcacion.create({
-    data: {
-      marcacionId,
-      valorAnterior: marcacion.timestampServidor,
-      valorPropuesto: new Date(valorPropuestoISO),
-      motivo,
-      solicitanteId: user.id,
-    },
-  });
-
-  revalidatePath("/fichajes");
-  return { ok: true };
 }
 
 export async function resolverCorreccion(
   correccionId: string,
   aprobar: boolean,
   ambito: "equipo" | "global"
-) {
-  const user = await requirePermission(
-    ambito === "global" ? PERMISSIONS.corregirFichajeGlobal : PERMISSIONS.corregirFichajeEquipo
-  );
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const user = await requirePermission(
+      ambito === "global" ? PERMISSIONS.corregirFichajeGlobal : PERMISSIONS.corregirFichajeEquipo
+    );
 
-  const correccion = await prisma.correccionMarcacion.findUnique({ where: { id: correccionId } });
-  if (!correccion || correccion.estado !== "PENDIENTE") {
-    throw new AuthzError("La corrección ya fue resuelta.");
+    const correccion = await prisma.correccionMarcacion.findUnique({ where: { id: correccionId } });
+    if (!correccion || correccion.estado !== "PENDIENTE") {
+      return { ok: false, error: "La corrección ya fue resuelta." };
+    }
+
+    // El registro original en `Marcacion` nunca se sobrescribe (spec §6.6): solo
+    // se marca la corrección como aprobada. Los listados resuelven el "valor
+    // vigente" leyendo la última corrección aprobada de cada marcación
+    // (ver `resolverValorVigente` en src/lib/fichajes.ts).
+    await prisma.correccionMarcacion.update({
+      where: { id: correccionId },
+      data: { estado: aprobar ? "APROBADA" : "RECHAZADA", aprobadorId: user.id, resueltoAt: new Date() },
+    });
+
+    revalidatePath("/panel-rrhh");
+    return { ok: true };
+  } catch (error: unknown) {
+    console.error("Error en resolverCorreccion:", error);
+    const message = error instanceof Error ? error.message : "Error desconocido";
+    return { ok: false, error: `Error al resolver corrección: ${message}` };
   }
-
-  // El registro original en `Marcacion` nunca se sobrescribe (spec §6.6): solo
-  // se marca la corrección como aprobada. Los listados resuelven el "valor
-  // vigente" leyendo la última corrección aprobada de cada marcación
-  // (ver `resolverValorVigente` en src/lib/fichajes.ts).
-  await prisma.correccionMarcacion.update({
-    where: { id: correccionId },
-    data: { estado: aprobar ? "APROBADA" : "RECHAZADA", aprobadorId: user.id, resueltoAt: new Date() },
-  });
-
-  revalidatePath("/panel-rrhh");
 }
