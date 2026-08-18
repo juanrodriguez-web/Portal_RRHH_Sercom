@@ -166,7 +166,7 @@ async function main() {
   await asignarJornada(carlos.id, jornada40.id);
 
   console.log("Sembrando saldos de vacaciones del año en curso…");
-  for (const u of [laura, carlos, ana, marcos]) {
+  for (const u of [laura, carlos, ana, marcos, juan]) {
     await prisma.saldoVacaciones.upsert({
       where: { userId_anio: { userId: u.id, anio: ANIO } },
       create: { userId: u.id, anio: ANIO, totalAnual: 23, arrastre: 0 },
@@ -174,7 +174,7 @@ async function main() {
     });
   }
 
-  console.log("Listo. Usuarios de demo:", [laura, carlos, ana, marcos].map((u) => u.email).join(", "));
+  console.log("Listo. Usuarios de demo:", [laura, carlos, ana, marcos, juan].map((u) => u.email).join(", "));
 }
 
 main()
