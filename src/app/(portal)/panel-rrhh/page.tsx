@@ -1,11 +1,43 @@
-import Link from "next/link";
 import { requirePermission } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
 import { getKpisRRHH } from "@/lib/dashboard";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
+import { Metrica } from "@/components/panel-rrhh/panel-metricas";
+import { AccionRapida } from "@/components/panel-rrhh/acciones-rapidas";
+import { UsersIcon, CalendarIcon, ClockIcon, BarChart3Icon, DownloadIcon, SettingsIcon } from "@/components/ui/icons";
+
+// Icono adicional para estadísticas
+function BarChart3Icon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="3" x2="12" y2="15" />
+      <line x1="19" y1="6" x2="19" y2="15" />
+      <line x1="5" y1="9" x2="5" y2="15" />
+      <path d="M3 20h18" />
+    </svg>
+  );
+}
+
+function DownloadIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2" />
+      <polyline points="7 11 12 16 17 11" />
+      <line x1="12" y1="4" x2="12" y2="15" />
+    </svg>
+  );
+}
+
+function SettingsIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m2.12 2.12l4.24 4.24M1 12h6m6 0h6m-7.78 7.78l-4.24-4.24m-2.12-2.12L4.22 4.22" />
+    </svg>
+  );
+}
 
 export default async function PanelRRHHPage() {
   await requirePermission(PERMISSIONS.verUsuarios);
@@ -18,79 +50,91 @@ export default async function PanelRRHHPage() {
     include: { actor: { select: { name: true } } },
   });
 
-  const tiles = [
-    { label: "Empleados activos", valor: kpis.empleadosActivos },
-    { label: "En jornada ahora", valor: kpis.enJornada },
-    { label: "Finalizados hoy", valor: kpis.finalizados },
-    { label: "Incompletos hoy", valor: kpis.incompletos },
-    { label: "Solicitudes pendientes", valor: kpis.solicitudesPendientes },
-    { label: "Ausencias próx. 7 días", valor: kpis.ausenciasProximas },
-    { label: "Sin jornada asignada", valor: kpis.sinJornada },
-    { label: "Sin manager", valor: kpis.sinManager },
-  ];
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Breadcrumb items={[{ label: "Panel RRHH" }]} />
 
-      {/* KPIs Section */}
+      {/* Encabezado */}
       <div>
-        <h2 className="mb-3 text-lg font-semibold text-foreground">Métricas clave</h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {tiles.map((t) => (
-            <Card key={t.label} className="text-center p-4">
-              <p className="text-2xl font-bold text-foreground">{t.valor}</p>
-              <p className="mt-2 text-xs text-muted-foreground">{t.label}</p>
-            </Card>
-          ))}
+        <h1 className="text-3xl font-bold text-foreground">Panel de Control RRHH</h1>
+        <p className="text-muted-foreground mt-2">Gestiona usuarios, fichajes, vacaciones y más desde aquí</p>
+      </div>
+
+      {/* KPIs Section - Grid mejorado */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Métricas clave</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Metrica valor={kpis.empleadosActivos} etiqueta="Empleados activos" icono="👥" color="brand" />
+          <Metrica valor={kpis.enJornada} etiqueta="En jornada ahora" icono="⏱️" color="success" />
+          <Metrica valor={kpis.finalizados} etiqueta="Finalizados hoy" icono="✓" color="info" />
+          <Metrica valor={kpis.incompletos} etiqueta="Incompletos hoy" icono="⏳" color="warning" />
+          <Metrica valor={kpis.solicitudesPendientes} etiqueta="Solicitudes pendientes" icono="📋" color="danger" />
+          <Metrica valor={kpis.ausenciasProximas} etiqueta="Ausencias próx. 7 días" icono="📅" color="info" />
+          <Metrica valor={kpis.sinJornada} etiqueta="Sin jornada asignada" icono="⚠️" color="warning" />
+          <Metrica valor={kpis.sinManager} etiqueta="Sin manager asignado" icono="🔗" color="warning" />
         </div>
       </div>
 
-      {/* Quick Actions Section */}
-      <Card className="p-6">
-        <h3 className="mb-4 text-base font-semibold text-foreground">Acciones rápidas</h3>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-          <Link href="/panel-rrhh/usuarios">
-            <Button variant="secondary" className="w-full justify-start">
-              Gestionar usuarios →
-            </Button>
-          </Link>
-          <Link href="/panel-rrhh/jornadas">
-            <Button variant="secondary" className="w-full justify-start">
-              Gestionar jornadas →
-            </Button>
-          </Link>
-          <a href="/api/fichajes/export">
-            <Button variant="secondary" className="w-full justify-start">
-              Exportar fichajes (Excel)
-            </Button>
-          </a>
-          <a href="/api/vacaciones/export">
-            <Button variant="secondary" className="w-full justify-start">
-              Exportar vacaciones (Excel)
-            </Button>
-          </a>
+      {/* Acciones Rápidas - Rediseño */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Acciones rápidas</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <AccionRapida
+            href="/panel-rrhh/usuarios"
+            titulo="Gestionar usuarios"
+            descripcion="Edita atributos RRHH y permisos de empleados"
+            icono={<UsersIcon className="h-6 w-6" />}
+            color="primary"
+          />
+          <AccionRapida
+            href="/panel-rrhh/jornadas"
+            titulo="Gestionar jornadas"
+            descripcion="Configura plantillas de horarios de trabajo"
+            icono={<CalendarIcon className="h-6 w-6" />}
+            color="secondary"
+          />
+          <AccionRapida
+            href="/api/fichajes/export"
+            titulo="Exportar fichajes"
+            descripcion="Descarga reportes de fichajes en Excel"
+            icono={<DownloadIcon className="h-6 w-6" />}
+            color="tertiary"
+          />
+          <AccionRapida
+            href="/api/vacaciones/export"
+            titulo="Exportar vacaciones"
+            descripcion="Descarga reportes de solicitudes de vacaciones"
+            icono={<DownloadIcon className="h-6 w-6" />}
+            color="tertiary"
+          />
         </div>
-      </Card>
+      </div>
 
-      {/* Recent Activity Section */}
+      {/* Actividad Reciente */}
       {recentActivity.length > 0 && (
-        <Card className="p-6">
-          <h3 className="mb-3 text-base font-semibold text-foreground">Actividad reciente</h3>
-          <div className="space-y-2">
-            {recentActivity.map((log) => (
-              <div key={log.id} className="flex items-start justify-between border-b border-border pb-2 last:border-0">
-                <div className="text-sm">
-                  <p className="font-medium text-foreground">{log.accion}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {log.actor?.name} • {new Date(log.createdAt).toLocaleString("es-ES")}
-                  </p>
-                  {log.motivo && <p className="text-xs text-muted-foreground">{log.motivo}</p>}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-foreground">Actividad reciente</h2>
+          <Card className="overflow-hidden">
+            <div className="divide-y divide-border">
+              {recentActivity.map((log) => (
+                <div key={log.id} className="p-4 hover:bg-muted transition">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-foreground text-sm">{log.accion}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {log.actor?.name} • {new Date(log.createdAt).toLocaleString("es-ES")}
+                      </p>
+                      {log.motivo && <p className="text-xs text-muted-foreground mt-0.5">{log.motivo}</p>}
+                    </div>
+                    <span className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground">
+                      {log.entidad}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+              ))}
+            </div>
+          </Card>
+        </div>
       )}
     </div>
   );
