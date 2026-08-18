@@ -28,7 +28,7 @@ export default async function OrganigramaPage() {
   );
 
   // Agrupar por departamento
-  const departamentos = Array.from(new Set(usuariosConManager.map(u => u.departamento).filter(Boolean)));
+  const departamentos = Array.from(new Set(usuariosConManager.map(u => u.departamento).filter((d): d is string => d !== null)));
 
   return (
     <div className="space-y-6">
