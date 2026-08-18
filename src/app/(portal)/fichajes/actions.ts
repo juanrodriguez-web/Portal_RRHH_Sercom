@@ -21,51 +21,57 @@ export type MarcarFichajeResult = { ok: true } | { ok: false; error: string };
  * (spec §6.3).
  */
 export async function marcarFichaje(): Promise<MarcarFichajeResult> {
-  const user = await requirePermission(PERMISSIONS.registrarFichajePropio);
-
-  const jornada = await getJornadaVigente(user.id, new Date());
-  if (!jornada) {
-    return { ok: false, error: "No tienes una jornada asignada. Contacta con RRHH." };
-  }
-
-  const ahora = new Date();
-  // Estado provisional del día "de hoy" para decidir si la marcación cruza
-  // medianoche y pertenece a la jornada laboral de ayer (spec §6.3).
-  const estadoHoy = computeEstadoJornada(await getMarcacionesDelDia(user.id, getFechaLaboral(ahora, "NO_INICIADA")), jornada);
-  const fechaLaboral = getFechaLaboral(ahora, estadoHoy);
-
-  const marcacionesDia = await getMarcacionesDelDia(user.id, fechaLaboral);
-  const estado = computeEstadoJornada(marcacionesDia, jornada);
-  const accion = getAccionEsperada(estado, jornada);
-
-  if (!accion) {
-    return { ok: false, error: "Tu jornada de hoy ya está finalizada." };
-  }
-
-  const idempotencyKey = `${user.id}:${fechaLaboral.toISOString().slice(0, 10)}:${accion.tipo}:${accion.tramo}`;
-
   try {
-    await prisma.marcacion.create({
-      data: {
-        userId: user.id,
-        tipo: accion.tipo,
-        tramo: accion.tramo,
-        timestampServidor: ahora,
-        fechaLaboral,
-        canalOrigen: "PORTAL_RRHH",
-        idempotencyKey,
-      },
-    });
-  } catch (err: unknown) {
-    if (typeof err === "object" && err && "code" in err && err.code === "P2002") {
-      return { ok: false, error: "Esa marcación ya estaba registrada." };
-    }
-    throw err;
-  }
+    const user = await requirePermission(PERMISSIONS.registrarFichajePropio);
 
-  revalidatePath("/fichajes");
-  revalidatePath("/inicio");
-  return { ok: true };
+    const jornada = await getJornadaVigente(user.id, new Date());
+    if (!jornada) {
+      return { ok: false, error: "No tienes una jornada asignada. Contacta con RRHH." };
+    }
+
+    const ahora = new Date();
+    // Estado provisional del día "de hoy" para decidir si la marcación cruza
+    // medianoche y pertenece a la jornada laboral de ayer (spec §6.3).
+    const estadoHoy = computeEstadoJornada(await getMarcacionesDelDia(user.id, getFechaLaboral(ahora, "NO_INICIADA")), jornada);
+    const fechaLaboral = getFechaLaboral(ahora, estadoHoy);
+
+    const marcacionesDia = await getMarcacionesDelDia(user.id, fechaLaboral);
+    const estado = computeEstadoJornada(marcacionesDia, jornada);
+    const accion = getAccionEsperada(estado, jornada);
+
+    if (!accion) {
+      return { ok: false, error: "Tu jornada de hoy ya está finalizada." };
+    }
+
+    const idempotencyKey = `${user.id}:${fechaLaboral.toISOString().slice(0, 10)}:${accion.tipo}:${accion.tramo}`;
+
+    try {
+      await prisma.marcacion.create({
+        data: {
+          userId: user.id,
+          tipo: accion.tipo,
+          tramo: accion.tramo,
+          timestampServidor: ahora,
+          fechaLaboral,
+          canalOrigen: "PORTAL_RRHH",
+          idempotencyKey,
+        },
+      });
+    } catch (err: unknown) {
+      if (typeof err === "object" && err && "code" in err && err.code === "P2002") {
+        return { ok: false, error: "Esa marcación ya estaba registrada." };
+      }
+      throw err;
+    }
+
+    revalidatePath("/fichajes");
+    revalidatePath("/inicio");
+    return { ok: true };
+  } catch (error: unknown) {
+    console.error("Error en marcarFichaje:", error);
+    const message = error instanceof Error ? error.message : "Error desconocido";
+    return { ok: false, error: `Error al registrar fichaje: ${message}` };
+  }
 }
 
 export type SolicitarCorreccionResult = { ok: true } | { ok: false; error: string };
