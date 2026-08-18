@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { solicitarVacaciones } from "@/app/(portal)/vacaciones/actions";
 
-export function SolicitarForm() {
+function SolicitarFormComponent() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [comentario, setComentario] = useState("");
@@ -17,7 +17,7 @@ export function SolicitarForm() {
       ? Math.max(0, Math.round((new Date(fechaFin).getTime() - new Date(fechaInicio).getTime()) / 86_400_000) + 1)
       : 0;
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setOk(false);
@@ -30,6 +30,7 @@ export function SolicitarForm() {
         setFechaInicio("");
         setFechaFin("");
         setComentario("");
+        setTimeout(() => setOk(false), 2000);
       }
     });
   }
@@ -81,3 +82,5 @@ export function SolicitarForm() {
     </form>
   );
 }
+
+export { SolicitarFormComponent as SolicitarForm };
