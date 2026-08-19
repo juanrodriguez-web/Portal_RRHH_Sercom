@@ -11,12 +11,15 @@ import { GestionarPermisosPanel } from "@/components/panel-rrhh/gestionar-permis
 export default async function UsuariosPage() {
   await requirePermission(PERMISSIONS.verUsuarios);
 
-  const usuarios = await prisma.user.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      permisos: { select: { permissionCode: true } },
-    },
-  });
+  const [usuarios, jornadas] = await Promise.all([
+    prisma.user.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        permisos: { select: { permissionCode: true } },
+      },
+    }),
+    prisma.jornadaPlantilla.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
+  ]);
   const managers = usuarios.map((u) => ({ id: u.id, name: u.name }));
 
   return (
@@ -30,10 +33,10 @@ export default async function UsuariosPage() {
 
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-bold text-foreground">Gestionar atributos RRHH</h2>
-          <Badge tone="info">Alta de credenciales fuera de alcance (spec §9.2)</Badge>
+          <h2 className="font-bold text-foreground">Gestionar empleados</h2>
+          <Badge tone="info">Credenciales gestionadas por Microsoft 365 (spec §9.2)</Badge>
         </div>
-        <UsuariosForm usuarios={usuarios} managers={managers} />
+        <UsuariosForm usuarios={usuarios} managers={managers} jornadas={jornadas} />
       </Card>
 
       <Card>

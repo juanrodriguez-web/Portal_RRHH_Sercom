@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import type { User } from "@/generated/prisma/client";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { TrashIcon } from "@/components/ui/icons";
 
 type UsuarioConPermisos = User & {
   permisos: { permissionCode: string }[];
@@ -12,6 +14,8 @@ interface FilaUsuarioProps {
   managers: { id: string; name: string }[];
   onFieldChange?: (fieldName: string, value: unknown) => void;
   hasChanges?: boolean;
+  onBorrar?: () => void;
+  borrando?: boolean;
 }
 
 export function FilaUsuario({
@@ -19,6 +23,8 @@ export function FilaUsuario({
   managers,
   onFieldChange,
   hasChanges = false,
+  onBorrar,
+  borrando = false,
 }: FilaUsuarioProps) {
   const [departamento, setDepartamento] = useState(usuario.departamento ?? "");
   const [managerId, setManagerId] = useState(usuario.managerId ?? "");
@@ -103,6 +109,25 @@ export function FilaUsuario({
           <option value="manager">Manager</option>
           <option value="rrhh">RRHH</option>
         </select>
+      </td>
+      <td className="py-2 pr-2 text-right">
+        {onBorrar && (
+          <ConfirmDialog
+            title={`¿Borrar a ${usuario.name}?`}
+            description="Solo es posible si no tiene fichajes, vacaciones, comunicados ni equipo a su cargo. Si ya tuvo actividad, usa 'Baja' en la columna Estado en su lugar."
+            confirmText="Borrar"
+            onConfirm={onBorrar}
+          >
+            <button
+              type="button"
+              title="Borrar usuario"
+              disabled={borrando}
+              className="rounded p-1.5 text-muted-foreground hover:bg-danger-tint hover:text-danger disabled:opacity-50"
+            >
+              <TrashIcon className="h-4 w-4" />
+            </button>
+          </ConfirmDialog>
+        )}
       </td>
     </tr>
   );

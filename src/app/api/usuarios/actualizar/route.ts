@@ -36,7 +36,10 @@ export async function POST(req: Request) {
         data: {
           ...(departamento !== undefined && { departamento }),
           ...(managerId !== undefined && { managerId }),
-          ...(estado !== undefined && { estado }),
+          ...(estado !== undefined && {
+            estado,
+            fechaBaja: estado === "BAJA" ? (user.fechaBaja ?? new Date()) : null,
+          }),
         },
       });
 

@@ -1,19 +1,48 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { User } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import { FilaUsuario } from "./fila-usuario";
+import { NuevoUsuarioModal } from "./nuevo-usuario-modal";
 
 interface UsuariosFormProps {
   usuarios: Array<User & { permisos: Array<{ permissionCode: string }> }>;
   managers: Array<{ id: string; name: string }>;
+  jornadas: Array<{ id: string; nombre: string }>;
 }
 
-export function UsuariosForm({ usuarios, managers }: UsuariosFormProps) {
+export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps) {
+  const router = useRouter();
   const [changes, setChanges] = useState<Map<string, Record<string, unknown>>>(new Map());
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [creando, setCreando] = useState(false);
+  const [borrandoId, setBorrandoId] = useState<string | null>(null);
+  const [errorBorrar, setErrorBorrar] = useState<string | null>(null);
+
+  const handleBorrar = async (usuarioId: string) => {
+    setBorrandoId(usuarioId);
+    setErrorBorrar(null);
+    try {
+      const res = await fetch("/api/usuarios/borrar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuarioId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorBorrar(data.error || "Error al borrar el usuario.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setErrorBorrar("Error al borrar el usuario.");
+    } finally {
+      setBorrandoId(null);
+    }
+  };
 
   const hasChanges = changes.size > 0;
 
@@ -66,6 +95,19 @@ export function UsuariosForm({ usuarios, managers }: UsuariosFormProps) {
 
   return (
     <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{usuarios.length} empleados</p>
+        <Button size="sm" onClick={() => setCreando(true)} className="gap-1">
+          + Nuevo empleado
+        </Button>
+      </div>
+
+      {errorBorrar && (
+        <div className="rounded border border-danger/30 bg-danger-tint px-3 py-2 text-sm text-danger">
+          {errorBorrar}
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -87,6 +129,8 @@ export function UsuariosForm({ usuarios, managers }: UsuariosFormProps) {
                 managers={managers}
                 onFieldChange={(fieldName, value) => handleRowChange(u.id, fieldName, value)}
                 hasChanges={!!changes.get(u.id)}
+                onBorrar={() => handleBorrar(u.id)}
+                borrando={borrandoId === u.id}
               />
             ))}
           </tbody>
@@ -138,6 +182,10 @@ export function UsuariosForm({ usuarios, managers }: UsuariosFormProps) {
           </Button>
           {saved && <span className="text-sm text-green-600">Cambios guardados</span>}
         </div>
+      )}
+
+      {creando && (
+        <NuevoUsuarioModal jornadas={jornadas} managers={managers} onClose={() => setCreando(false)} />
       )}
     </div>
   );
