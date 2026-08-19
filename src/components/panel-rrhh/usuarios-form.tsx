@@ -21,6 +21,19 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
   const [creando, setCreando] = useState(false);
   const [borrandoId, setBorrandoId] = useState<string | null>(null);
   const [errorBorrar, setErrorBorrar] = useState<string | null>(null);
+  const [busqueda, setBusqueda] = useState("");
+  const [soloActivos, setSoloActivos] = useState(true);
+
+  const usuariosFiltrados = usuarios.filter((u) => {
+    if (soloActivos && u.estado !== "ACTIVO") return false;
+    const q = busqueda.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      u.name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      (u.departamento ?? "").toLowerCase().includes(q)
+    );
+  });
 
   const handleBorrar = async (usuarioId: string) => {
     setBorrandoId(usuarioId);
@@ -96,10 +109,31 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{usuarios.length} empleados</p>
+        <p className="text-sm text-muted-foreground">
+          Mostrando {usuariosFiltrados.length} de {usuarios.length} empleados
+        </p>
         <Button size="sm" onClick={() => setCreando(true)} className="gap-1">
           + Nuevo empleado
         </Button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          type="text"
+          placeholder="Buscar por nombre, email o departamento..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="min-w-[240px] flex-1 rounded-[var(--radius-control)] border border-border-strong bg-background px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+        />
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={soloActivos}
+            onChange={(e) => setSoloActivos(e.target.checked)}
+            className="rounded"
+          />
+          Solo activos
+        </label>
       </div>
 
       {errorBorrar && (
@@ -122,7 +156,14 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
             </tr>
           </thead>
           <tbody>
-            {usuarios.map((u) => (
+            {usuariosFiltrados.length === 0 && (
+              <tr>
+                <td colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                  No se encontraron empleados.
+                </td>
+              </tr>
+            )}
+            {usuariosFiltrados.map((u) => (
               <FilaUsuario
                 key={u.id}
                 usuario={u}

@@ -10,6 +10,7 @@ interface GestionarPermisosPanelProps {
 }
 
 export function GestionarPermisosPanel({ usuarios }: GestionarPermisosPanelProps) {
+  const [abierto, setAbierto] = useState(false);
   const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
   const [busqueda, setBusqueda] = useState("");
 
@@ -30,6 +31,27 @@ export function GestionarPermisosPanel({ usuarios }: GestionarPermisosPanelProps
 
   return (
     <div className="space-y-4">
+      <button
+        type="button"
+        onClick={() => setAbierto((v) => !v)}
+        className="flex w-full items-center justify-between text-left"
+      >
+        <div>
+          <h2 className="font-bold text-foreground">Personalizar permisos individuales</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Excepción: usa esto solo si un usuario necesita un permiso suelto fuera de su grupo (Empleado/Manager/RRHH).
+            El caso normal es cambiar el "Rol" en la tabla de empleados de arriba.
+          </p>
+        </div>
+        {abierto ? (
+          <ChevronDownIcon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+        ) : (
+          <ChevronRightIcon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+        )}
+      </button>
+
+      {abierto && (
+        <>
       <input
         type="text"
         placeholder="Buscar usuario por nombre o email..."
@@ -76,6 +98,8 @@ export function GestionarPermisosPanel({ usuarios }: GestionarPermisosPanelProps
         <div className="text-center py-8">
           <p className="text-muted-foreground text-sm">No se encontraron usuarios</p>
         </div>
+      )}
+        </>
       )}
     </div>
   );

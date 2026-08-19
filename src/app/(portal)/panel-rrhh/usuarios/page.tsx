@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { FilaUsuario } from "@/components/panel-rrhh/fila-usuario";
 import { UsuariosForm } from "@/components/panel-rrhh/usuarios-form";
 import { GestionarPermisosPanel } from "@/components/panel-rrhh/gestionar-permisos-panel";
 
@@ -40,10 +39,6 @@ export default async function UsuariosPage() {
       </Card>
 
       <Card>
-        <h2 className="font-bold text-foreground mb-4">Gestionar permisos de usuarios</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Asigna permisos por grupo (empleado, manager, RRHH) o personaliza permisos individuales.
-        </p>
         <GestionarPermisosPanel usuarios={usuarios} />
       </Card>
     </div>
