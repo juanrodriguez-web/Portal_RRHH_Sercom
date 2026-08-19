@@ -82,6 +82,17 @@
     --border-strong: #3a3b3f;
     --brand-tint: #2a1215;
     --brand-tint-strong: #3a1a1f;
+
+    --success-tint: #132a16;
+
+    --warning-tint: #2e2410;
+    --warning-tint-strong: #40311a;
+
+    --danger-tint: #2e161c;
+    --danger-tint-strong: #3a1a20;
+
+    --info-tint: #13203a;
+    --info-tint-strong: #1c2b4a;
   }
 }
 

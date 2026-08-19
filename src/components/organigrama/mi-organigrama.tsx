@@ -109,8 +109,8 @@ export function MiOrganigrama({ inicial }: { inicial: OrgNode }) {
             Mi equipo ({equipo.length})
           </h4>
 
-          <div className="flex justify-center overflow-x-auto pb-2">
-            <div className="flex flex-nowrap gap-6 px-2">
+          <div className="w-full overflow-x-auto pb-2">
+            <div className="mx-auto flex w-fit flex-nowrap gap-6 px-2">
               {equipo.map((reportado, i) => (
                 <div key={reportado.id} className="flex w-56 flex-shrink-0 flex-col items-center">
                   {/* Zona conectora: bus horizontal + bajante vertical */}
