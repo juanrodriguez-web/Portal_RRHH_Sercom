@@ -127,7 +127,7 @@ export function FormularioNuevaJornada() {
       {/* Tab Content */}
       <div className="space-y-4">
         {activeTab === "info" && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium mb-2">Nombre *</label>
               <input
@@ -185,7 +185,7 @@ export function FormularioNuevaJornada() {
           <div className="space-y-4">
             <div>
               <h4 className="text-sm font-semibold mb-3">Tramo 1</h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">Inicio</label>
                   <input
@@ -210,7 +210,7 @@ export function FormularioNuevaJornada() {
             {tieneTramo2 && (
               <div>
                 <h4 className="text-sm font-semibold mb-3">Tramo 2 (después de pausa)</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Inicio</label>
                     <input

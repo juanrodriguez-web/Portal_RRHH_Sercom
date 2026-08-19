@@ -14,7 +14,7 @@ export function SaldoCard({
   const pct = totalAnual > 0 ? Math.max(0, Math.min(100, (disponible / totalAnual) * 100)) : 0;
 
   return (
-    <Card className="flex items-center gap-6">
+    <Card className="flex flex-col items-center gap-6 sm:flex-row">
       <div
         className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full"
         style={{

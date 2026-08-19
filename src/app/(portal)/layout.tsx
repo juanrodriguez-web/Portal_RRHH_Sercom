@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getUserPermissionCodes } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
-import { Sidebar, type NavItem } from "@/components/layout/sidebar";
-import { Topbar } from "@/components/layout/topbar";
+import { PortalShell, type NavItem } from "@/components/layout/portal-shell";
 import { ClockIcon, HomeIcon, CalendarIcon, ShieldIcon, UsersIcon } from "@/components/ui/icons";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
@@ -36,16 +35,14 @@ export default async function PortalLayout({ children }: { children: React.React
     .toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar general={general} rrhh={rrhh} />
-      <div className="flex flex-1 flex-col">
-        <Topbar
-          title="Portal RRHH"
-          userName={session.user.name ?? session.user.email ?? ""}
-          userInitials={userInitials}
-        />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
-    </div>
+    <PortalShell
+      general={general}
+      rrhh={rrhh}
+      title="Portal RRHH"
+      userName={session.user.name ?? session.user.email ?? ""}
+      userInitials={userInitials}
+    >
+      {children}
+    </PortalShell>
   );
 }

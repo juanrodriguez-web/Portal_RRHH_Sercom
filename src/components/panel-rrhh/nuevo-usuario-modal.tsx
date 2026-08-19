@@ -25,7 +25,7 @@ export function NuevoUsuarioModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <Card className="w-full max-w-lg space-y-4 p-6">
+      <Card className="max-h-[90vh] w-full max-w-lg space-y-4 overflow-y-auto p-6">
         <div>
           <h2 className="text-lg font-bold text-foreground">Alta de empleado</h2>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -92,7 +92,7 @@ export function NuevoUsuarioModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="text-sm font-medium">Departamento</label>
               <input
@@ -120,7 +120,7 @@ export function NuevoUsuarioModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="text-sm font-medium">Jornada</label>
               <select

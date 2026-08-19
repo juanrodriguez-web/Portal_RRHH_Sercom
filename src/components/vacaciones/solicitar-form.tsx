@@ -38,7 +38,7 @@ function SolicitarFormComponent() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <h2 className="font-bold text-foreground">Solicitar vacaciones</h2>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
           Fecha inicio
           <input

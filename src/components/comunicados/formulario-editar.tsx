@@ -40,8 +40,8 @@ export function FormularioEditarComunicado({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <Card className="w-full max-w-2xl space-y-4 p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <Card className="max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto p-6">
         <h2 className="text-lg font-bold">Editar Comunicado</h2>
 
         <form

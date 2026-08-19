@@ -74,9 +74,9 @@ export function RelojFichaje({
         <Badge tone={estado.tono}>{estado.texto}</Badge>
       </div>
 
-      <div className="flex items-stretch gap-6">
+      <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:gap-6">
         <div className="flex flex-col justify-between">
-          <div className="font-mono text-5xl font-bold tabular-nums text-foreground">
+          <div className="font-mono text-3xl font-bold tabular-nums text-foreground sm:text-5xl">
             {ahora ? new Intl.DateTimeFormat("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(ahora) : "--:--:--"}
           </div>
           <p className="text-sm text-muted-foreground">
@@ -84,7 +84,7 @@ export function RelojFichaje({
           </p>
         </div>
 
-        <div className="flex gap-3 items-center">
+        <div className="flex flex-wrap gap-3 items-center">
           {accion ? (
             accionesVisibles.map((a, idx) => {
               const esActivo = idx === 0;
