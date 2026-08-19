@@ -96,6 +96,7 @@ export function RelojFichaje({
                   variant={esActivo && !hecha ? "primary" : "secondary"}
                   onClick={esActivo && !hecha ? handleClick : undefined}
                   disabled={hecha || pending}
+                  loading={esActivo && !hecha && pending}
                   className="px-6 py-3 text-sm font-bold rounded-lg"
                 >
                   {hecha ? "✓ " : ""}{a.etiqueta}

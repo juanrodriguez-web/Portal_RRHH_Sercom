@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
+import { ButtonSpinner } from "./button-spinner";
 
 type Variant = "primary" | "secondary" | "ghost" | "success" | "warning" | "destructive";
 type Size = "sm" | "md";
@@ -22,12 +23,26 @@ export function Button({
   variant = "primary",
   size = "md",
   className = "",
+  loading = false,
+  disabled,
+  children,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; loading?: boolean }) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] font-semibold transition-colors disabled:cursor-not-allowed outline-none ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
+      className={`relative inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] font-semibold transition-colors disabled:cursor-not-allowed outline-none ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
-    />
+    >
+      <span className={`inline-flex items-center justify-center gap-2 ${loading ? "invisible" : ""}`}>
+        {children}
+      </span>
+      {loading && (
+        <span className="absolute inset-0 flex items-center justify-center">
+          <ButtonSpinner variant={variant} />
+        </span>
+      )}
+    </button>
   );
 }

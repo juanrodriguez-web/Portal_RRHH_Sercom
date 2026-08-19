@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signOut } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
 import { BellIcon, LogOutIcon, MenuIcon, MoonIcon } from "@/components/ui/icons";
+
+// Tope de seguridad: si por lo que sea el pathname nunca cambia (navegación
+// a la misma ruta, fallo de red, etc.) el overlay no debe quedar colgado.
+const NAVEGACION_TIMEOUT_MS = 5000;
 
 export type NavItem = {
   href: string;
@@ -32,10 +37,48 @@ export function PortalShell({
   children: React.ReactNode;
 }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const pathname = usePathname();
+  const prevPathname = useRef(pathname);
+  const navTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // La ruta ya cambió -> la navegación terminó (el nuevo contenido está en
+  // el DOM). No depende de un timer fijo: se corta en cuanto Next.js
+  // termina de renderizar la nueva página.
+  useEffect(() => {
+    if (prevPathname.current !== pathname) {
+      prevPathname.current = pathname;
+      setIsNavigating(false);
+      if (navTimeout.current) clearTimeout(navTimeout.current);
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    return () => {
+      if (navTimeout.current) clearTimeout(navTimeout.current);
+    };
+  }, []);
+
+  const empezarNavegacion = (href: string) => {
+    if (href === pathname) return;
+    setIsNavigating(true);
+    if (navTimeout.current) clearTimeout(navTimeout.current);
+    navTimeout.current = setTimeout(() => setIsNavigating(false), NAVEGACION_TIMEOUT_MS);
+  };
 
   return (
     <div className="flex min-h-dvh bg-background">
+      {/* Barra de progreso de navegación */}
+      {isNavigating && (
+        <div
+          className="vf-bar fixed left-0 top-0 z-[100] h-[3px] w-full bg-brand"
+          style={{
+            animation: "vf-bar 500ms ease-out forwards",
+            boxShadow: "0 0 8px rgba(227, 6, 19, 0.6)",
+          }}
+        />
+      )}
+
       {/* Backdrop móvil */}
       {menuAbierto && (
         <div
@@ -53,9 +96,25 @@ export function PortalShell({
         <Logo className="px-2" />
 
         <nav className="mt-8 flex flex-1 flex-col gap-6 overflow-y-auto">
-          <NavSection title="General" items={general} pathname={pathname} onNavigate={() => setMenuAbierto(false)} />
+          <NavSection
+            title="General"
+            items={general}
+            pathname={pathname}
+            onNavigate={(href) => {
+              setMenuAbierto(false);
+              empezarNavegacion(href);
+            }}
+          />
           {rrhh.length > 0 ? (
-            <NavSection title="RRHH" items={rrhh} pathname={pathname} onNavigate={() => setMenuAbierto(false)} />
+            <NavSection
+              title="RRHH"
+              items={rrhh}
+              pathname={pathname}
+              onNavigate={(href) => {
+                setMenuAbierto(false);
+                empezarNavegacion(href);
+              }}
+            />
           ) : null}
         </nav>
 
@@ -117,7 +176,24 @@ export function PortalShell({
             </button>
           </div>
         </header>
-        <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">{children}</main>
+        <main className="relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+          {isNavigating && (
+            <div
+              aria-busy="true"
+              className="absolute inset-0 z-10 flex items-center justify-center bg-background py-[120px]"
+            >
+              <span
+                className="vf-spin inline-block h-11 w-11"
+                style={{ animation: "vf-spin 900ms linear infinite" }}
+                aria-label="Cargando"
+                role="status"
+              >
+                <Image src="/vodafone-logo.png" alt="" width={44} height={44} priority />
+              </span>
+            </div>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   );
@@ -132,7 +208,7 @@ function NavSection({
   title: string;
   items: NavItem[];
   pathname: string;
-  onNavigate: () => void;
+  onNavigate: (href: string) => void;
 }) {
   if (items.length === 0) return null;
   return (
@@ -145,7 +221,7 @@ function NavSection({
             <Link
               key={item.href}
               href={item.href}
-              onClick={onNavigate}
+              onClick={() => onNavigate(item.href)}
               className={`flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-sm font-medium transition-colors ${
                 active ? "bg-brand-tint text-brand" : "text-foreground hover:bg-background"
               }`}
