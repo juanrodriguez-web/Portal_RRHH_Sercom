@@ -70,7 +70,7 @@ export function ComunicadosGrid({
         <div className="flex gap-2">
           <Button
             size="sm"
-            variant={filterType === "todos" ? "default" : "secondary"}
+            variant={filterType === "todos" ? "primary" : "secondary"}
             onClick={() => setFilterType("todos")}
           >
             Todos
