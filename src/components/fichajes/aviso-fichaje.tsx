@@ -47,10 +47,16 @@ export function AvisoFichaje({
       Promise.resolve().then(() => setPushEstado("no-soportado"));
       return;
     }
-    navigator.serviceWorker.register("/sw.js").then(async (reg) => {
-      const existente = await reg.pushManager.getSubscription();
-      setPushEstado(existente ? "activo" : "disponible");
-    });
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(async (reg) => {
+        const existente = await reg.pushManager.getSubscription();
+        setPushEstado(existente ? "activo" : "disponible");
+      })
+      .catch((err) => {
+        console.error("Error registrando service worker:", err);
+        setPushEstado("no-soportado");
+      });
   }, []);
 
   function ahoraNo() {
@@ -70,19 +76,35 @@ export function AvisoFichaje({
 
   async function activarAvisos() {
     try {
-      console.log("1. Iniciando activación de avisos...");
-      const reg = await navigator.serviceWorker.ready;
-      console.log("2. Service Worker listo");
+      if (!("Notification" in window)) {
+        alert("Este navegador no soporta notificaciones.");
+        return;
+      }
 
+      // Pedir el permiso ANTES de cualquier otro await: varios navegadores
+      // (sobre todo Safari/iOS) solo muestran el diálogo si se llama dentro
+      // del gesto de click del usuario, sin ningún await previo. Si se pide
+      // después de esperar el service worker, lo ignoran en silencio y la
+      // promesa se queda colgada para siempre (parece que "no hace nada").
+      console.log("1. Pidiendo permiso de notificaciones...");
       const permiso = await Notification.requestPermission();
-      console.log("3. Permiso de notificaciones:", permiso);
+      console.log("2. Permiso de notificaciones:", permiso);
       if (permiso !== "granted") {
         alert("Necesitas permitir notificaciones para recibir avisos de fichaje");
         return;
       }
 
+      console.log("3. Esperando service worker...");
+      const reg = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("El service worker tardó demasiado en activarse.")), 10_000)
+        ),
+      ]);
+      console.log("4. Service Worker listo");
+
       const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      console.log("4. Clave VAPID pública:", publicKey ? "✓" : "✗");
+      console.log("5. Clave VAPID pública:", publicKey ? "✓" : "✗");
       if (!publicKey) {
         alert("Claves VAPID no configuradas");
         return;
@@ -92,18 +114,18 @@ export function AvisoFichaje({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
-      console.log("5. Suscripción push creada");
+      console.log("6. Suscripción push creada");
 
       const json = sub.toJSON();
-      console.log("6. Datos de suscripción:", { endpoint: json.endpoint?.substring(0, 50), keys: !!json.keys });
+      console.log("7. Datos de suscripción:", { endpoint: json.endpoint?.substring(0, 50), keys: !!json.keys });
       if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
         alert("Error: datos de suscripción incompletos");
         return;
       }
 
-      console.log("7. Guardando en servidor...");
+      console.log("8. Guardando en servidor...");
       await suscribirPush({ endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } });
-      console.log("8. ✓ Guardado en servidor");
+      console.log("9. ✓ Guardado en servidor");
 
       setPushEstado("activo");
       alert("✓ Avisos de fichaje activados");
