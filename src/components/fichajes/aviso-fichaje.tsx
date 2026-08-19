@@ -144,7 +144,7 @@ export function AvisoFichaje({
             Vemos que ya estás activo. ¿Fichamos tu <strong>{etiquetaAccion?.toLowerCase()}</strong>?
           </p>
           <div className="ml-auto flex gap-2">
-            <Button size="sm" onClick={ficharAhora} disabled={pending}>
+            <Button size="sm" onClick={ficharAhora} disabled={pending} loading={pending}>
               Fichar {etiquetaAccion}
             </Button>
             <Button size="sm" variant="ghost" onClick={ahoraNo}>
