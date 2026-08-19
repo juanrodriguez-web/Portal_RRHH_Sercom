@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { User } from "@/generated/prisma/client";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TrashIcon } from "@/components/ui/icons";
+import { PERMISSIONS } from "@/lib/permissions";
 
 type UsuarioConPermisos = User & {
   permisos: { permissionCode: string }[];
@@ -35,9 +36,9 @@ export function FilaUsuario({
 
   function detectarGrupo(permisos: { permissionCode: string }[]): "empleado" | "manager" | "rrhh" | "" {
     const codes = new Set(permisos.map((p) => p.permissionCode));
-    if (codes.has("gestionarUsuariosRrhh")) return "rrhh";
-    if (codes.has("aprobarVacacionesEquipo")) return "manager";
-    if (codes.has("registrarFichajePropio")) return "empleado";
+    if (codes.has(PERMISSIONS.gestionarUsuariosRrhh)) return "rrhh";
+    if (codes.has(PERMISSIONS.aprobarVacacionesEquipo)) return "manager";
+    if (codes.has(PERMISSIONS.registrarFichajePropio)) return "empleado";
     return "";
   }
 
