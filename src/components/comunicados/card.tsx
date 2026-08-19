@@ -56,13 +56,13 @@ export function ComunicadoCard({
     >
       {/* Imagen */}
       {imagen && (
-        <div className={`relative w-full overflow-hidden ${size === "featured" ? "h-40" : "h-24"}`}>
+        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
           <Image
             src={imagen}
             alt={titulo}
             fill
             className="object-cover"
-            sizes={size === "featured" ? "500px" : "300px"}
+            sizes={size === "featured" ? "500px" : "300px"}"
           />
         </div>
       )}
