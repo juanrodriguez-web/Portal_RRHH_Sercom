@@ -56,7 +56,7 @@ export function ComunicadoCard({
     >
       {/* Imagen */}
       {imagen && (
-        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
+        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "3/2" }}>
           <Image
             src={imagen}
             alt={titulo}
