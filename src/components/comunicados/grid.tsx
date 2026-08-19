@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { ComunicadoCard, ComunicadoCardProps } from "./card";
 import { FormularioEditarComunicado } from "./formulario-editar";
+import { VerComunicado } from "./ver-comunicado";
 import { SearchIcon } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 
@@ -18,6 +19,7 @@ export function ComunicadosGrid({
   puedeEditar?: boolean;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<FilterType>("todos");
 
@@ -119,6 +121,7 @@ export function ComunicadosGrid({
                       {...c}
                       puedeEditar={puedeEditar}
                       onEdit={(id) => setEditingId(id)}
+                      onView={(id) => setViewingId(id)}
                       size="featured"
                     />
                   </div>
@@ -148,6 +151,7 @@ export function ComunicadosGrid({
                       {...c}
                       puedeEditar={puedeEditar}
                       onEdit={(id) => setEditingId(id)}
+                      onView={(id) => setViewingId(id)}
                       size="compact"
                     />
                   </div>
@@ -166,6 +170,14 @@ export function ComunicadosGrid({
           onClose={() => setEditingId(null)}
         />
       )}
+
+      {/* Modal de Vista */}
+      {viewingId && (() => {
+        const comunicado = comunicados.find((c) => c.id === viewingId);
+        return comunicado ? (
+          <VerComunicado comunicado={comunicado} onClose={() => setViewingId(null)} />
+        ) : null;
+      })()}
 
       <style>{`
         @keyframes fadeInUp {

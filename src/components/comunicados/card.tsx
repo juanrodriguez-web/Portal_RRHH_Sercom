@@ -20,6 +20,7 @@ export type ComunicadoCardProps = {
   autor: { name: string };
   puedeEditar: boolean;
   onEdit?: (id: string) => void;
+  onView?: (id: string) => void;
   size?: "compact" | "featured";
 };
 
@@ -33,6 +34,7 @@ export function ComunicadoCard({
   autor,
   puedeEditar,
   onEdit,
+  onView,
   size = "compact",
 }: ComunicadoCardProps) {
   const [pending, startTransition] = useTransition();
@@ -48,7 +50,8 @@ export function ComunicadoCard({
 
   return (
     <Card
-      className={`relative flex flex-col overflow-hidden border-2 transition-all hover:shadow-md hover:scale-[1.02] h-full ${
+      onClick={() => onView?.(id)}
+      className={`relative flex cursor-pointer flex-col overflow-hidden border-2 transition-all hover:shadow-md hover:scale-[1.02] h-full ${
         importante
           ? "border-warning bg-warning-tint"
           : "border-border bg-surface hover:border-border-strong"
@@ -56,7 +59,7 @@ export function ComunicadoCard({
     >
       {/* Imagen */}
       {imagen && (
-        <div className={`relative w-full overflow-hidden ${size === "featured" ? "max-h-40" : "max-h-24"}`} style={{ aspectRatio: "16/9" }}>
+        <div className={`relative w-full overflow-hidden ${size === "featured" ? "h-40" : "h-28"}`}>
           <Image
             src={imagen}
             alt={titulo}
@@ -101,7 +104,10 @@ export function ComunicadoCard({
 
         {/* Acciones RRHH */}
         {puedeEditar && (
-          <div className="mt-3 flex gap-1 border-t border-border/30 pt-2">
+          <div
+            className="mt-3 flex gap-1 border-t border-border/30 pt-2"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Button
               size="sm"
               variant="ghost"
