@@ -1,8 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/authz";
-import { PERMISSIONS } from "@/lib/permissions";
+import { requireUser } from "@/lib/authz";
 
 export type OrgNode = {
   id: string;
@@ -15,7 +14,7 @@ export type OrgNode = {
 };
 
 export async function obtenerMiOrganigrama(): Promise<OrgNode> {
-  const user = await requirePermission(PERMISSIONS.fichajePropio);
+  const user = await requireUser();
 
   const miInfo = await prisma.user.findUniqueOrThrow({
     where: { id: user.id },
@@ -49,7 +48,7 @@ export async function obtenerMiOrganigrama(): Promise<OrgNode> {
 }
 
 export async function obtenerNivelSuperior(userId: string): Promise<OrgNode | null> {
-  await requirePermission(PERMISSIONS.fichajePropio);
+  await requireUser();
 
   const usuario = await prisma.user.findUnique({
     where: { id: userId },
