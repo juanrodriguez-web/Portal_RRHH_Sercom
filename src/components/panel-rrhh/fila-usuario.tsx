@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { User } from "@/generated/prisma/client";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { TrashIcon } from "@/components/ui/icons";
+import { TrashIcon, EditIcon } from "@/components/ui/icons";
 import { detectarGrupoUsuario } from "@/lib/permissions";
 
 type UsuarioConPermisos = User & {
@@ -29,6 +29,8 @@ export function FilaUsuario({
 }: FilaUsuarioProps) {
   const [name, setName] = useState(usuario.name);
   const [email, setEmail] = useState(usuario.email);
+  const [editandoNombre, setEditandoNombre] = useState(false);
+  const [editandoEmail, setEditandoEmail] = useState(false);
   const [departamento, setDepartamento] = useState(usuario.departamento ?? "");
   const [managerId, setManagerId] = useState(usuario.managerId ?? "");
   const [estado, setEstado] = useState(usuario.estado);
@@ -68,22 +70,102 @@ export function FilaUsuario({
     onFieldChange?.("grupoPermisos", value);
   };
 
+  const cancelarEdicionNombre = () => {
+    if (name !== usuario.name) {
+      setName(usuario.name);
+      onFieldChange?.("name", usuario.name);
+    }
+    setEditandoNombre(false);
+  };
+
+  const cancelarEdicionEmail = () => {
+    if (email !== usuario.email) {
+      setEmail(usuario.email);
+      onFieldChange?.("email", usuario.email);
+    }
+    setEditandoEmail(false);
+  };
+
   return (
     <tr className={`border-b border-border last:border-0 ${hasChanges ? "bg-blue-50 dark:bg-blue-950/20" : ""}`}>
       <td className="py-2 pr-4">
-        <input
-          value={name}
-          onChange={(e) => handleNameChange(e.target.value)}
-          className="w-36 rounded-[var(--radius-control)] border border-border-strong px-2 py-1 text-sm font-medium focus:ring-2 focus:ring-brand focus:outline-none"
-        />
+        {editandoNombre ? (
+          <div className="flex items-center gap-1">
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && cancelarEdicionNombre()}
+              className="w-32 rounded-[var(--radius-control)] border border-brand px-2 py-1 text-sm font-medium focus:ring-2 focus:ring-brand focus:outline-none"
+            />
+            <button
+              type="button"
+              title="Confirmar"
+              onClick={() => setEditandoNombre(false)}
+              className="rounded p-1 text-success hover:bg-success-tint"
+            >
+              ✓
+            </button>
+            <button
+              type="button"
+              title="Cancelar"
+              onClick={cancelarEdicionNombre}
+              className="rounded p-1 text-muted-foreground hover:bg-danger-tint hover:text-danger"
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            title="Editar nombre"
+            onClick={() => setEditandoNombre(true)}
+            className="group flex items-center gap-1.5 rounded px-1 py-0.5 text-left font-medium hover:bg-muted"
+          >
+            {name}
+            <EditIcon className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100" />
+          </button>
+        )}
       </td>
       <td className="py-2 pr-4">
-        <input
-          value={email}
-          onChange={(e) => handleEmailChange(e.target.value)}
-          title="Cambiar el email cambia con qué cuenta de Microsoft 365 inicia sesión esta persona. Solo edítalo para corregir un error de tipeo."
-          className="w-48 rounded-[var(--radius-control)] border border-border-strong px-2 py-1 text-sm text-muted-foreground focus:ring-2 focus:ring-brand focus:outline-none"
-        />
+        {editandoEmail ? (
+          <div className="flex items-center gap-1">
+            <input
+              autoFocus
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && cancelarEdicionEmail()}
+              title="Cambiar el email cambia con qué cuenta de Microsoft 365 inicia sesión esta persona. Solo edítalo para corregir un error de tipeo."
+              className="w-44 rounded-[var(--radius-control)] border border-brand px-2 py-1 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+            />
+            <button
+              type="button"
+              title="Confirmar"
+              onClick={() => setEditandoEmail(false)}
+              className="rounded p-1 text-success hover:bg-success-tint"
+            >
+              ✓
+            </button>
+            <button
+              type="button"
+              title="Cancelar"
+              onClick={cancelarEdicionEmail}
+              className="rounded p-1 text-muted-foreground hover:bg-danger-tint hover:text-danger"
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            title="Editar email"
+            onClick={() => setEditandoEmail(true)}
+            className="group flex items-center gap-1.5 rounded px-1 py-0.5 text-left text-sm text-muted-foreground hover:bg-muted"
+          >
+            {email}
+            <EditIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-0 group-hover:opacity-100" />
+          </button>
+        )}
       </td>
       <td className="py-2 pr-4">
         <input
