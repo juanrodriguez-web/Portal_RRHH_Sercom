@@ -10,7 +10,8 @@ export type Result = { ok: true } | { ok: false; error: string };
 export async function crearComunicado(
   titulo: string,
   contenido: string,
-  importante: boolean
+  importante: boolean,
+  imagen?: string | null
 ): Promise<Result> {
   const user = await requirePermission(PERMISSIONS.crearComunicados);
 
@@ -27,10 +28,12 @@ export async function crearComunicado(
       titulo: titulo.trim(),
       contenido: contenido.trim(),
       importante,
+      imagen: imagen || null,
       autorId: user.id,
     },
   });
 
+  revalidatePath("/");
   revalidatePath("/comunicados");
   return { ok: true };
 }
@@ -74,7 +77,8 @@ export async function editarComunicado(
   comunicadoId: string,
   titulo: string,
   contenido: string,
-  importante: boolean
+  importante: boolean,
+  imagen?: string | null
 ): Promise<Result> {
   const user = await requirePermission(PERMISSIONS.crearComunicados);
 
@@ -97,6 +101,7 @@ export async function editarComunicado(
       titulo: titulo.trim(),
       contenido: contenido.trim(),
       importante,
+      imagen: imagen || null,
       updatedAt: new Date(),
     },
   });

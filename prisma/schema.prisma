@@ -302,6 +302,7 @@ model Comunicado {
   id          String   @id @default(cuid())
   titulo      String
   contenido   String
+  imagen      String?  // URL de imagen (base64 o CDN)
   autorId     String
   autor       User     @relation("ComunicadosCreados", fields: [autorId], references: [id])
   importante  Boolean  @default(false)

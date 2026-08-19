@@ -1,6 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, useState } from "react";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { editarComunicado } from "@/app/(portal)/comunicados/actions";
@@ -16,8 +17,27 @@ export function FormularioEditarComunicado({
   onClose: () => void;
 }) {
   const [pending, startTransition] = useTransition();
+  const [imagen, setImagen] = useState<string | null>(comunicado?.imagen || null);
+  const [error, setError] = useState<string | null>(null);
 
   if (!comunicado) return null;
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError("La imagen no debe exceder 2MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImagen(event.target?.result as string);
+      setError(null);
+    };
+    reader.readAsDataURL(file);
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -33,7 +53,8 @@ export function FormularioEditarComunicado({
                 id,
                 formData.get("titulo") as string,
                 formData.get("contenido") as string,
-                formData.get("importante") === "on"
+                formData.get("importante") === "on",
+                imagen
               );
               if (result.ok) {
                 onClose();
@@ -65,6 +86,31 @@ export function FormularioEditarComunicado({
             />
           </div>
 
+          {/* Imagen */}
+          <div>
+            <label className="text-sm font-medium">Imagen</label>
+            {imagen ? (
+              <div className="relative mt-2 h-40 w-full overflow-hidden rounded border border-border">
+                <Image src={imagen} alt="preview" fill className="object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setImagen(null)}
+                  className="absolute right-2 top-2 rounded bg-danger px-2 py-1 text-xs font-semibold text-white"
+                >
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="mt-1 w-full rounded border border-border bg-background p-2 text-sm"
+                disabled={pending}
+              />
+            )}
+          </div>
+
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -75,6 +121,8 @@ export function FormularioEditarComunicado({
             />
             <span className="text-sm font-medium">Marcar como importante</span>
           </label>
+
+          {error && <p className="text-sm text-danger">{error}</p>}
 
           <div className="flex gap-2">
             <Button type="submit" disabled={pending}>
