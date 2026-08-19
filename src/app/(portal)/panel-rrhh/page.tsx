@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Metrica } from "@/components/panel-rrhh/panel-metricas";
 import { AccionRapida } from "@/components/panel-rrhh/acciones-rapidas";
-import { OrgChart } from "@/components/organigrama/org-chart";
 import { UsersIcon, CalendarIcon, DownloadIcon } from "@/components/ui/icons";
 
 export default async function PanelRRHHPage() {
@@ -43,14 +42,6 @@ export default async function PanelRRHHPage() {
           <Metrica valor={kpis.sinJornada} etiqueta="Sin jornada asignada" icono="⚠️" color="warning" />
           <Metrica valor={kpis.sinManager} etiqueta="Sin manager asignado" icono="🔗" color="warning" />
         </div>
-      </div>
-
-      {/* Organigrama */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">Estructura organizacional</h2>
-        <Card className="p-4">
-          <OrgChart />
-        </Card>
       </div>
 
       {/* Acciones Rápidas - Rediseño */}
