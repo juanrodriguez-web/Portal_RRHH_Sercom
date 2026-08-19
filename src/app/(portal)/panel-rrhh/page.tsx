@@ -9,7 +9,7 @@ import { AccionRapida } from "@/components/panel-rrhh/acciones-rapidas";
 import { UsersIcon, CalendarIcon, DownloadIcon } from "@/components/ui/icons";
 
 export default async function PanelRRHHPage() {
-  await requirePermission(PERMISSIONS.verUsuarios);
+  await requirePermission(PERMISSIONS.gestionarUsuariosRrhh);
   const kpis = await getKpisRRHH();
 
   // Actividad reciente: últimas 5 acciones de audit

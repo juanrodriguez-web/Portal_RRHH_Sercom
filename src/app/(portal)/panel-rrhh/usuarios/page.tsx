@@ -1,5 +1,5 @@
 import { requirePermission } from "@/lib/authz";
-import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
+import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,7 @@ import { UsuariosForm } from "@/components/panel-rrhh/usuarios-form";
 import { GestionarPermisosPanel } from "@/components/panel-rrhh/gestionar-permisos-panel";
 
 export default async function UsuariosPage() {
-  await requirePermission(PERMISSIONS.verUsuarios);
+  await requirePermission(PERMISSIONS.gestionarUsuariosRrhh);
 
   const [usuarios, jornadas] = await Promise.all([
     prisma.user.findMany({

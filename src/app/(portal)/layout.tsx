@@ -24,7 +24,7 @@ export default async function PortalLayout({ children }: { children: React.React
   }
 
   const rrhh: NavItem[] = [];
-  if (permisos.has(PERMISSIONS.verUsuarios) || permisos.has(PERMISSIONS.verFichajeGlobal)) {
+  if (permisos.has(PERMISSIONS.gestionarUsuariosRrhh)) {
     rrhh.push({ href: "/panel-rrhh", label: "Panel RRHH", icon: <ShieldIcon /> });
   }
 
