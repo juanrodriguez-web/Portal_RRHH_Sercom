@@ -20,6 +20,7 @@ export function PortalShell({
   title,
   userName,
   userInitials,
+  userDepartamento,
   children,
 }: {
   general: NavItem[];
@@ -27,6 +28,7 @@ export function PortalShell({
   title: string;
   userName: string;
   userInitials: string;
+  userDepartamento?: string | null;
   children: React.ReactNode;
 }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -57,12 +59,14 @@ export function PortalShell({
           ) : null}
         </nav>
 
-        <div className="rounded-[var(--radius-card)] bg-brand-tint p-4 text-sm">
-          <p className="text-lg leading-none text-brand">&ldquo;</p>
-          <p className="mt-1 font-semibold text-foreground">¿Dudas con el portal?</p>
-          <p className="text-muted-foreground">Escribe a rrhh@sercom.es</p>
+        <div className="mt-4 border-t border-border pt-4">
+          <div className="rounded-[var(--radius-card)] bg-brand-tint p-4 text-sm">
+            <p className="text-lg leading-none text-brand">&ldquo;</p>
+            <p className="mt-1 font-semibold text-foreground">¿Dudas con el portal?</p>
+            <p className="text-muted-foreground">Escribe a rrhh@sercom.es</p>
+          </div>
+          <p className="mt-4 text-center text-xs text-muted-foreground">Portal RRHH · piloto</p>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">Portal RRHH · piloto</p>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -95,7 +99,14 @@ export function PortalShell({
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-tint-strong text-sm font-bold text-brand">
               {userInitials}
             </div>
-            <span className="hidden text-sm font-medium text-foreground sm:block">{userName}</span>
+            <span className="hidden items-center gap-2 sm:flex">
+              <span className="text-sm font-medium text-foreground">{userName}</span>
+              {userDepartamento ? (
+                <span className="rounded-full bg-border px-2 py-0.5 text-[0.65rem] font-semibold text-muted-foreground">
+                  {userDepartamento}
+                </span>
+              ) : null}
+            </span>
             <button
               type="button"
               aria-label="Cerrar sesión"

@@ -15,7 +15,6 @@ import { getResumenSaldo } from "@/lib/vacaciones";
 import { RelojFichaje } from "@/components/fichajes/reloj-fichaje";
 import { AvisoFichaje } from "@/components/fichajes/aviso-fichaje";
 import { ComunicadosGrid } from "@/components/comunicados/grid";
-import { FormularioNuevoComunicado } from "@/components/comunicados/formulario-nuevo";
 import { Card } from "@/components/ui/card";
 import { formatFecha } from "@/lib/format";
 
@@ -57,16 +56,18 @@ export default async function InicioPage() {
           {dbUser.name.slice(0, 2).toUpperCase()}
         </div>
         <div>
-          <h1 className="text-lg font-bold text-foreground">
-            {saludo}, {dbUser.name.split(" ")[0]}!
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-bold text-foreground">
+              {saludo}, {dbUser.name.split(" ")[0]}!
+            </h1>
+            {dbUser.departamento ? (
+              <span className="rounded-full bg-border px-3 py-1 text-xs font-semibold text-muted-foreground">
+                {dbUser.departamento}
+              </span>
+            ) : null}
+          </div>
           <p className="text-sm capitalize text-muted-foreground">{formatFecha(ahora)}</p>
         </div>
-        {dbUser.departamento ? (
-          <span className="ml-auto rounded-full bg-border px-3 py-1 text-xs font-semibold text-muted-foreground">
-            {dbUser.departamento}
-          </span>
-        ) : null}
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -87,9 +88,12 @@ export default async function InicioPage() {
           <div>
             <h2 className="font-bold text-foreground">Vacaciones</h2>
             <p className="mt-2 text-3xl font-bold text-foreground">
-              {disponibles !== null ? disponibles : "—"}
+              {disponibles ?? 0}
               <span className="ml-1 text-sm font-normal text-muted-foreground">días disponibles</span>
             </p>
+            {disponibles === null ? (
+              <p className="mt-1 text-xs text-muted-foreground">Sin días asignados este año todavía</p>
+            ) : null}
           </div>
           <Link
             href="/vacaciones"
@@ -102,15 +106,7 @@ export default async function InicioPage() {
 
       {permisos.has(PERMISSIONS.verComunicados) && (
         <div className="space-y-6">
-          <div>
-            <h2 className="mb-4 font-bold text-foreground">Comunicados</h2>
-            {permisos.has(PERMISSIONS.crearComunicados) && (
-              <Card className="mb-6">
-                <h3 className="mb-3 font-semibold text-foreground">Crear comunicado</h3>
-                <FormularioNuevoComunicado />
-              </Card>
-            )}
-          </div>
+          <h2 className="font-bold text-foreground">Comunicados</h2>
           <ComunicadosGrid
             comunicados={comunicados}
             puedeEditar={permisos.has(PERMISSIONS.crearComunicados)}

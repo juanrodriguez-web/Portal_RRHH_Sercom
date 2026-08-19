@@ -44,11 +44,7 @@ export function ComunicadoCard({
   return (
     <Card
       onClick={() => onView?.(id)}
-      className={`relative flex cursor-pointer flex-col overflow-hidden border-2 transition-all hover:shadow-md hover:scale-[1.02] h-full ${
-        importante
-          ? "border-warning bg-warning-tint"
-          : "border-border bg-surface hover:border-border-strong"
-      } ${size === "featured" ? "" : ""}`}
+      className={`relative flex cursor-pointer flex-col overflow-hidden border transition-all hover:shadow-md hover:scale-[1.02] h-full border-border bg-surface hover:border-border-strong`}
     >
       {/* Imagen */}
       {imagen && (
@@ -60,13 +56,21 @@ export function ComunicadoCard({
             className="object-cover"
             sizes={size === "featured" ? "500px" : "300px"}
           />
+          {importante && (
+            <div className="absolute right-3 top-3">
+              <Badge tone="warning">
+                <StarIcon className="h-3 w-3" />
+                Importante
+              </Badge>
+            </div>
+          )}
         </div>
       )}
 
       {/* Contenido */}
       <div className={`flex flex-1 flex-col ${imagen ? "p-3" : size === "featured" ? "p-3" : "p-3"}`}>
-        {/* Badge Importante */}
-        {importante && (
+        {/* Badge Importante (sin imagen: se muestra junto al título) */}
+        {importante && !imagen && (
           <div className="absolute right-3 top-3">
             <Badge tone="warning">
               <StarIcon className="h-3 w-3" />
@@ -78,7 +82,7 @@ export function ComunicadoCard({
         <h3
           className={`font-bold text-foreground line-clamp-2 ${
             size === "featured" ? "text-base" : "text-sm"
-          } ${importante ? "pr-24" : ""}`}
+          } ${importante && !imagen ? "pr-24" : ""}`}
         >
           {titulo}
         </h3>

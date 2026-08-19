@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getUserPermissionCodes } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
+import { prisma } from "@/lib/prisma";
 import { PortalShell, type NavItem } from "@/components/layout/portal-shell";
 import { ClockIcon, HomeIcon, CalendarIcon, ShieldIcon, UsersIcon } from "@/components/ui/icons";
 
@@ -9,7 +10,10 @@ export default async function PortalLayout({ children }: { children: React.React
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const permisos = await getUserPermissionCodes(session.user.id);
+  const [permisos, dbUser] = await Promise.all([
+    getUserPermissionCodes(session.user.id),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { departamento: true } }),
+  ]);
 
   const general: NavItem[] = [{ href: "/inicio", label: "Inicio", icon: <HomeIcon /> }];
   if (permisos.has(PERMISSIONS.verFichajePropio)) {
@@ -41,6 +45,7 @@ export default async function PortalLayout({ children }: { children: React.React
       title="Portal RRHH"
       userName={session.user.name ?? session.user.email ?? ""}
       userInitials={userInitials}
+      userDepartamento={dbUser?.departamento ?? null}
     >
       {children}
     </PortalShell>

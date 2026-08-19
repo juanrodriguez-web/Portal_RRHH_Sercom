@@ -138,7 +138,7 @@ export function AvisoFichaje({
   return (
     <div className="flex flex-col gap-2">
       {visible ? (
-        <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-card)] bg-warning-tint px-4 py-3">
+        <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-card)] border border-border border-l-[3px] border-l-warning bg-surface px-4 py-3 shadow-sm">
           <BellIcon className="text-warning" />
           <p className="text-sm text-foreground">
             Vemos que ya estás activo. ¿Fichamos tu <strong>{etiquetaAccion?.toLowerCase()}</strong>?
