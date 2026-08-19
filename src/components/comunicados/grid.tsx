@@ -77,14 +77,14 @@ export function ComunicadosGrid({
           </Button>
           <Button
             size="sm"
-            variant={filterType === "importantes" ? "default" : "secondary"}
+            variant={filterType === "importantes" ? "primary" : "secondary"}
             onClick={() => setFilterType("importantes")}
           >
             📌 Importantes
           </Button>
           <Button
             size="sm"
-            variant={filterType === "activos" ? "default" : "secondary"}
+            variant={filterType === "activos" ? "primary" : "secondary"}
             onClick={() => setFilterType("activos")}
           >
             Activos
