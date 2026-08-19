@@ -62,7 +62,7 @@ export function ComunicadoCard({
             alt={titulo}
             fill
             className="object-cover"
-            sizes={size === "featured" ? "500px" : "300px"}"
+            sizes={size === "featured" ? "500px" : "300px"}
           />
         </div>
       )}
