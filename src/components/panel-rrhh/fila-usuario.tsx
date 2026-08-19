@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { User } from "@/generated/prisma/client";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TrashIcon } from "@/components/ui/icons";
-import { PERMISSIONS } from "@/lib/permissions";
+import { PERMISSION_GROUPS } from "@/lib/permissions";
 
 type UsuarioConPermisos = User & {
   permisos: { permissionCode: string }[];
@@ -30,16 +30,21 @@ export function FilaUsuario({
   const [departamento, setDepartamento] = useState(usuario.departamento ?? "");
   const [managerId, setManagerId] = useState(usuario.managerId ?? "");
   const [estado, setEstado] = useState(usuario.estado);
+  const grupoDetectado = detectarGrupo(usuario.permisos);
+  const esPersonalizado = grupoDetectado === "custom";
   const [grupoPermisos, setGrupoPermisos] = useState<"empleado" | "manager" | "rrhh" | "">(
-    usuario.permisos.length > 0 ? detectarGrupo(usuario.permisos) : ""
+    esPersonalizado ? "" : grupoDetectado
   );
 
-  function detectarGrupo(permisos: { permissionCode: string }[]): "empleado" | "manager" | "rrhh" | "" {
+  function detectarGrupo(permisos: { permissionCode: string }[]): "empleado" | "manager" | "rrhh" | "custom" | "" {
+    if (permisos.length === 0) return "";
     const codes = new Set(permisos.map((p) => p.permissionCode));
-    if (codes.has(PERMISSIONS.gestionarUsuariosRrhh)) return "rrhh";
-    if (codes.has(PERMISSIONS.aprobarVacacionesEquipo)) return "manager";
-    if (codes.has(PERMISSIONS.registrarFichajePropio)) return "empleado";
-    return "";
+    for (const [grupo, codigosGrupo] of Object.entries(PERMISSION_GROUPS)) {
+      if (codigosGrupo.length === codes.size && codigosGrupo.every((c) => codes.has(c))) {
+        return grupo as "empleado" | "manager" | "rrhh";
+      }
+    }
+    return "custom";
   }
 
   const handleDepartamentoChange = (value: string) => {
@@ -103,13 +108,21 @@ export function FilaUsuario({
         <select
           value={grupoPermisos}
           onChange={(e) => handleGrupoChange(e.target.value)}
-          className="rounded-[var(--radius-control)] border border-border-strong px-2 py-1 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+          title={esPersonalizado ? "Tiene permisos personalizados fuera de los 3 grupos estándar. Elegir un rol aquí y guardar los reemplaza por el set por defecto de ese grupo." : undefined}
+          className={`rounded-[var(--radius-control)] border px-2 py-1 text-sm focus:ring-2 focus:ring-brand focus:outline-none ${
+            esPersonalizado ? "border-warning" : "border-border-strong"
+          }`}
         >
           <option value="">—</option>
           <option value="empleado">Empleado</option>
           <option value="manager">Manager</option>
           <option value="rrhh">RRHH</option>
         </select>
+        {esPersonalizado && (
+          <div className="mt-1 text-xs font-medium text-warning" title="Permisos distintos a los 3 grupos estándar">
+            Personalizado ({usuario.permisos.length})
+          </div>
+        )}
       </td>
       <td className="py-2 pr-2 text-right">
         {onBorrar && (

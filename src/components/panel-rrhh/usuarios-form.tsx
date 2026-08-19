@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { FilaUsuario } from "./fila-usuario";
 import { NuevoUsuarioModal } from "./nuevo-usuario-modal";
 
+const POR_PAGINA = 20;
+
 interface UsuariosFormProps {
   usuarios: Array<User & { permisos: Array<{ permissionCode: string }> }>;
   managers: Array<{ id: string; name: string }>;
@@ -23,6 +25,7 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
   const [errorBorrar, setErrorBorrar] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [soloActivos, setSoloActivos] = useState(true);
+  const [pagina, setPagina] = useState(1);
 
   const usuariosFiltrados = usuarios.filter((u) => {
     if (soloActivos && u.estado !== "ACTIVO") return false;
@@ -34,6 +37,13 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
       (u.departamento ?? "").toLowerCase().includes(q)
     );
   });
+
+  const totalPaginas = Math.max(1, Math.ceil(usuariosFiltrados.length / POR_PAGINA));
+  const paginaActual = Math.min(pagina, totalPaginas);
+  const usuariosPagina = usuariosFiltrados.slice(
+    (paginaActual - 1) * POR_PAGINA,
+    paginaActual * POR_PAGINA
+  );
 
   const handleBorrar = async (usuarioId: string) => {
     setBorrandoId(usuarioId);
@@ -122,14 +132,20 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
           type="text"
           placeholder="Buscar por nombre, email o departamento..."
           value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
+          onChange={(e) => {
+            setBusqueda(e.target.value);
+            setPagina(1);
+          }}
           className="min-w-[240px] flex-1 rounded-[var(--radius-control)] border border-border-strong bg-background px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
         />
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input
             type="checkbox"
             checked={soloActivos}
-            onChange={(e) => setSoloActivos(e.target.checked)}
+            onChange={(e) => {
+              setSoloActivos(e.target.checked);
+              setPagina(1);
+            }}
             className="rounded"
           />
           Solo activos
@@ -163,7 +179,7 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
                 </td>
               </tr>
             )}
-            {usuariosFiltrados.map((u) => (
+            {usuariosPagina.map((u) => (
               <FilaUsuario
                 key={u.id}
                 usuario={u}
@@ -177,6 +193,30 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
           </tbody>
         </table>
       </div>
+
+      {totalPaginas > 1 && (
+        <div className="flex items-center justify-between text-sm">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setPagina((p) => Math.max(1, p - 1))}
+            disabled={paginaActual === 1}
+          >
+            Anterior
+          </Button>
+          <span className="text-muted-foreground">
+            Página {paginaActual} de {totalPaginas}
+          </span>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+            disabled={paginaActual === totalPaginas}
+          >
+            Siguiente
+          </Button>
+        </div>
+      )}
 
       {hasChanges && (
         <div className="flex items-center gap-2 border-t border-border pt-3">
