@@ -90,3 +90,18 @@ export const PERMISSION_GROUPS: Record<string, PermissionCode[]> = {
 };
 
 export const DEFAULT_PERMISSIONS = PERMISSION_GROUPS.empleado;
+
+export type GrupoDetectado = "empleado" | "manager" | "rrhh" | "custom" | "";
+
+// Compara el set exacto de permisos de un usuario contra cada PERMISSION_GROUPS.
+// "custom" = tiene permisos pero no coinciden exactamente con ningun grupo estandar.
+export function detectarGrupoUsuario(permisos: { permissionCode: string }[]): GrupoDetectado {
+  if (permisos.length === 0) return "";
+  const codes = new Set(permisos.map((p) => p.permissionCode));
+  for (const [grupo, codigosGrupo] of Object.entries(PERMISSION_GROUPS)) {
+    if (codigosGrupo.length === codes.size && codigosGrupo.every((c) => codes.has(c))) {
+      return grupo as "empleado" | "manager" | "rrhh";
+    }
+  }
+  return "custom";
+}

@@ -6,8 +6,15 @@ import type { User } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import { FilaUsuario } from "./fila-usuario";
 import { NuevoUsuarioModal } from "./nuevo-usuario-modal";
+import { detectarGrupoUsuario } from "@/lib/permissions";
 
 const POR_PAGINA = 20;
+const ROLES = [
+  { value: "empleado", label: "Empleado" },
+  { value: "manager", label: "Manager" },
+  { value: "rrhh", label: "RRHH" },
+  { value: "custom", label: "Personalizado" },
+] as const;
 
 interface UsuariosFormProps {
   usuarios: Array<User & { permisos: Array<{ permissionCode: string }> }>;
@@ -23,12 +30,21 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
   const [creando, setCreando] = useState(false);
   const [borrandoId, setBorrandoId] = useState<string | null>(null);
   const [errorBorrar, setErrorBorrar] = useState<string | null>(null);
+  const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [soloActivos, setSoloActivos] = useState(true);
+  const [filtroDepartamento, setFiltroDepartamento] = useState("");
+  const [filtroRol, setFiltroRol] = useState("");
   const [pagina, setPagina] = useState(1);
+
+  const departamentos = Array.from(
+    new Set(usuarios.map((u) => u.departamento).filter((d): d is string => !!d))
+  ).sort((a, b) => a.localeCompare(b));
 
   const usuariosFiltrados = usuarios.filter((u) => {
     if (soloActivos && u.estado !== "ACTIVO") return false;
+    if (filtroDepartamento && u.departamento !== filtroDepartamento) return false;
+    if (filtroRol && detectarGrupoUsuario(u.permisos) !== filtroRol) return false;
     const q = busqueda.trim().toLowerCase();
     if (!q) return true;
     return (
@@ -37,6 +53,8 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
       (u.departamento ?? "").toLowerCase().includes(q)
     );
   });
+
+  const resetearPagina = () => setPagina(1);
 
   const totalPaginas = Math.max(1, Math.ceil(usuariosFiltrados.length / POR_PAGINA));
   const paginaActual = Math.min(pagina, totalPaginas);
@@ -84,6 +102,7 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
     if (!hasChanges) return;
 
     setSaving(true);
+    setErrorGuardar(null);
     try {
       const updates = Array.from(changes.entries()).map(([usuarioId, fieldChanges]) => ({
         usuarioId,
@@ -91,6 +110,7 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
       }));
 
       // Guardar cada cambio
+      const fallos: string[] = [];
       for (const update of updates) {
         const res = await fetch("/api/usuarios/actualizar", {
           method: "POST",
@@ -98,14 +118,34 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
           body: JSON.stringify(update),
         });
 
-        if (!res.ok) throw new Error("Error al guardar");
+        if (!res.ok) {
+          const usuario = usuarios.find((u) => u.id === update.usuarioId);
+          let mensaje = "Error al guardar";
+          try {
+            const data = await res.json();
+            if (data?.error) mensaje = data.error;
+          } catch {
+            // respuesta no era JSON, usar mensaje genérico
+          }
+          fallos.push(`${usuario?.name ?? update.usuarioId}: ${mensaje}`);
+          continue;
+        }
+
+        setChanges((prev) => {
+          const next = new Map(prev);
+          next.delete(update.usuarioId);
+          return next;
+        });
       }
 
-      setSaved(true);
-      setChanges(new Map());
-      setTimeout(() => setSaved(false), 2000);
-    } catch (error) {
-      console.error("Error saving:", error);
+      if (fallos.length > 0) {
+        setErrorGuardar(fallos.join(" · "));
+      } else {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      }
+    } catch {
+      setErrorGuardar("Error al guardar los cambios.");
     } finally {
       setSaving(false);
     }
@@ -134,7 +174,7 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
           value={busqueda}
           onChange={(e) => {
             setBusqueda(e.target.value);
-            setPagina(1);
+            resetearPagina();
           }}
           className="min-w-[240px] flex-1 rounded-[var(--radius-control)] border border-border-strong bg-background px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
         />
@@ -144,17 +184,53 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
             checked={soloActivos}
             onChange={(e) => {
               setSoloActivos(e.target.checked);
-              setPagina(1);
+              resetearPagina();
             }}
             className="rounded"
           />
           Solo activos
         </label>
+        <select
+          value={filtroDepartamento}
+          onChange={(e) => {
+            setFiltroDepartamento(e.target.value);
+            resetearPagina();
+          }}
+          className="rounded-[var(--radius-control)] border border-border-strong bg-background px-2 py-1.5 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+        >
+          <option value="">Todos los departamentos</option>
+          {departamentos.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filtroRol}
+          onChange={(e) => {
+            setFiltroRol(e.target.value);
+            resetearPagina();
+          }}
+          className="rounded-[var(--radius-control)] border border-border-strong bg-background px-2 py-1.5 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+        >
+          <option value="">Todos los roles</option>
+          {ROLES.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {errorBorrar && (
         <div className="rounded border border-danger/30 bg-danger-tint px-3 py-2 text-sm text-danger">
           {errorBorrar}
+        </div>
+      )}
+
+      {errorGuardar && (
+        <div className="rounded border border-danger/30 bg-danger-tint px-3 py-2 text-sm text-danger">
+          {errorGuardar}
         </div>
       )}
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { User } from "@/generated/prisma/client";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TrashIcon } from "@/components/ui/icons";
-import { PERMISSION_GROUPS } from "@/lib/permissions";
+import { detectarGrupoUsuario } from "@/lib/permissions";
 
 type UsuarioConPermisos = User & {
   permisos: { permissionCode: string }[];
@@ -27,25 +27,26 @@ export function FilaUsuario({
   onBorrar,
   borrando = false,
 }: FilaUsuarioProps) {
+  const [name, setName] = useState(usuario.name);
+  const [email, setEmail] = useState(usuario.email);
   const [departamento, setDepartamento] = useState(usuario.departamento ?? "");
   const [managerId, setManagerId] = useState(usuario.managerId ?? "");
   const [estado, setEstado] = useState(usuario.estado);
-  const grupoDetectado = detectarGrupo(usuario.permisos);
+  const grupoDetectado = detectarGrupoUsuario(usuario.permisos);
   const esPersonalizado = grupoDetectado === "custom";
   const [grupoPermisos, setGrupoPermisos] = useState<"empleado" | "manager" | "rrhh" | "">(
     esPersonalizado ? "" : grupoDetectado
   );
 
-  function detectarGrupo(permisos: { permissionCode: string }[]): "empleado" | "manager" | "rrhh" | "custom" | "" {
-    if (permisos.length === 0) return "";
-    const codes = new Set(permisos.map((p) => p.permissionCode));
-    for (const [grupo, codigosGrupo] of Object.entries(PERMISSION_GROUPS)) {
-      if (codigosGrupo.length === codes.size && codigosGrupo.every((c) => codes.has(c))) {
-        return grupo as "empleado" | "manager" | "rrhh";
-      }
-    }
-    return "custom";
-  }
+  const handleNameChange = (value: string) => {
+    setName(value);
+    onFieldChange?.("name", value);
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    onFieldChange?.("email", value);
+  };
 
   const handleDepartamentoChange = (value: string) => {
     setDepartamento(value);
@@ -69,8 +70,21 @@ export function FilaUsuario({
 
   return (
     <tr className={`border-b border-border last:border-0 ${hasChanges ? "bg-blue-50 dark:bg-blue-950/20" : ""}`}>
-      <td className="py-2 pr-4 font-medium">{usuario.name}</td>
-      <td className="py-2 pr-4 text-sm text-muted-foreground">{usuario.email}</td>
+      <td className="py-2 pr-4">
+        <input
+          value={name}
+          onChange={(e) => handleNameChange(e.target.value)}
+          className="w-36 rounded-[var(--radius-control)] border border-border-strong px-2 py-1 text-sm font-medium focus:ring-2 focus:ring-brand focus:outline-none"
+        />
+      </td>
+      <td className="py-2 pr-4">
+        <input
+          value={email}
+          onChange={(e) => handleEmailChange(e.target.value)}
+          title="Cambiar el email cambia con qué cuenta de Microsoft 365 inicia sesión esta persona. Solo edítalo para corregir un error de tipeo."
+          className="w-48 rounded-[var(--radius-control)] border border-border-strong px-2 py-1 text-sm text-muted-foreground focus:ring-2 focus:ring-brand focus:outline-none"
+        />
+      </td>
       <td className="py-2 pr-4">
         <input
           value={departamento}

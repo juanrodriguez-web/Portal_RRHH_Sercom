@@ -17,10 +17,25 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { usuarioId, departamento, managerId, estado, grupoPermisos } = body;
+  const { usuarioId, name, email: emailRaw, departamento, managerId, estado, grupoPermisos } = body;
 
   if (!usuarioId) {
     return new Response("Missing usuarioId", { status: 400 });
+  }
+
+  const DOMINIO_PERMITIDO = "@sercomsoluciones.es";
+  let email: string | undefined;
+  if (emailRaw !== undefined) {
+    email = String(emailRaw).trim().toLowerCase();
+    if (!email.endsWith(DOMINIO_PERMITIDO)) {
+      return Response.json(
+        { error: `El email debe pertenecer al dominio ${DOMINIO_PERMITIDO}.` },
+        { status: 400 }
+      );
+    }
+  }
+  if (name !== undefined && String(name).trim() === "") {
+    return Response.json({ error: "El nombre no puede estar vacío." }, { status: 400 });
   }
 
   try {
@@ -29,11 +44,26 @@ export async function POST(req: Request) {
       return new Response("Usuario no encontrado", { status: 404 });
     }
 
+    if (email !== undefined && email !== user.email) {
+      const existente = await prisma.user.findUnique({ where: { email } });
+      if (existente) {
+        return Response.json({ error: "Ya existe otro usuario con ese email." }, { status: 409 });
+      }
+    }
+
     // Actualizar atributos básicos
-    if (departamento !== undefined || managerId !== undefined || estado !== undefined) {
+    if (
+      name !== undefined ||
+      email !== undefined ||
+      departamento !== undefined ||
+      managerId !== undefined ||
+      estado !== undefined
+    ) {
       await prisma.user.update({
         where: { id: usuarioId },
         data: {
+          ...(name !== undefined && { name: String(name).trim() }),
+          ...(email !== undefined && { email }),
           ...(departamento !== undefined && { departamento }),
           ...(managerId !== undefined && { managerId }),
           ...(estado !== undefined && {
@@ -52,11 +82,15 @@ export async function POST(req: Request) {
           entidadId: usuarioId,
           motivo: "Actualización de atributos RRHH",
           valoresAntes: {
+            name: user.name,
+            email: user.email,
             departamento: user.departamento,
             managerId: user.managerId,
             estado: user.estado,
           },
           valoresDespues: {
+            name: name !== undefined ? String(name).trim() : user.name,
+            email: email ?? user.email,
             departamento: departamento ?? user.departamento,
             managerId: managerId ?? user.managerId,
             estado: estado ?? user.estado,
