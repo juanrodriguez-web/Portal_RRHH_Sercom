@@ -72,7 +72,7 @@ export function ComunicadoCard({
         {/* Badge Importante */}
         {importante && (
           <div className="absolute right-3 top-3">
-            <Badge tone="warning" className="flex items-center gap-1">
+            <Badge tone="warning">
               <StarIcon className="h-3 w-3" />
               Importante
             </Badge>
