@@ -103,7 +103,7 @@ export function ComunicadoCard({
         {puedeEditar && (
           <div className="mt-3 flex gap-1 border-t border-border/30 pt-2">
             <Button
-              size="xs"
+              size="sm"
               variant="ghost"
               title="Editar"
               disabled={pending}
@@ -113,7 +113,7 @@ export function ComunicadoCard({
               <EditIcon className="h-4 w-4" />
             </Button>
             <Button
-              size="xs"
+              size="sm"
               variant="ghost"
               title={importante ? "Quitar destacado" : "Destacar"}
               disabled={pending}
@@ -127,7 +127,7 @@ export function ComunicadoCard({
               <StarIcon className={`h-4 w-4 ${importante ? "fill-warning" : ""}`} />
             </Button>
             <Button
-              size="xs"
+              size="sm"
               variant="ghost"
               title="Borrar"
               disabled={pending}
