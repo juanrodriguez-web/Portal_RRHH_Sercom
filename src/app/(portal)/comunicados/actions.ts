@@ -65,6 +65,60 @@ export async function marcarImportante(comunicadoId: string, importante: boolean
     data: { importante },
   });
 
+  revalidatePath("/");
+  revalidatePath("/comunicados");
+  return { ok: true };
+}
+
+export async function editarComunicado(
+  comunicadoId: string,
+  titulo: string,
+  contenido: string,
+  importante: boolean
+): Promise<Result> {
+  const user = await requirePermission(PERMISSIONS.crearComunicados);
+
+  if (!titulo.trim() || !contenido.trim()) {
+    return { ok: false, error: "Título y contenido son obligatorios." };
+  }
+
+  if (titulo.length > 200) {
+    return { ok: false, error: "El título no puede exceder 200 caracteres." };
+  }
+
+  const comunicado = await prisma.comunicado.findUnique({ where: { id: comunicadoId } });
+  if (!comunicado) {
+    return { ok: false, error: "Comunicado no encontrado." };
+  }
+
+  await prisma.comunicado.update({
+    where: { id: comunicadoId },
+    data: {
+      titulo: titulo.trim(),
+      contenido: contenido.trim(),
+      importante,
+      updatedAt: new Date(),
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/comunicados");
+  return { ok: true };
+}
+
+export async function borrarComunicado(comunicadoId: string): Promise<Result> {
+  const user = await requirePermission(PERMISSIONS.crearComunicados);
+
+  const comunicado = await prisma.comunicado.findUnique({ where: { id: comunicadoId } });
+  if (!comunicado) {
+    return { ok: false, error: "Comunicado no encontrado." };
+  }
+
+  await prisma.comunicado.delete({
+    where: { id: comunicadoId },
+  });
+
+  revalidatePath("/");
   revalidatePath("/comunicados");
   return { ok: true };
 }

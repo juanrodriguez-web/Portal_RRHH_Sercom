@@ -14,7 +14,7 @@ import { prisma } from "@/lib/prisma";
 import { getResumenSaldo } from "@/lib/vacaciones";
 import { RelojFichaje } from "@/components/fichajes/reloj-fichaje";
 import { AvisoFichaje } from "@/components/fichajes/aviso-fichaje";
-import { ListadoComunicados } from "@/components/comunicados/listado";
+import { ComunicadosGrid } from "@/components/comunicados/grid";
 import { FormularioNuevoComunicado } from "@/components/comunicados/formulario-nuevo";
 import { Card } from "@/components/ui/card";
 import { formatFecha } from "@/lib/format";
@@ -37,7 +37,7 @@ export default async function InicioPage() {
   const comunicados = permisos.has(PERMISSIONS.verComunicados)
     ? await prisma.comunicado.findMany({
         where: { archivado: false },
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ importante: "desc" }, { createdAt: "desc" }],
         include: { autor: { select: { name: true } } },
       })
     : [];
@@ -101,20 +101,20 @@ export default async function InicioPage() {
       </div>
 
       {permisos.has(PERMISSIONS.verComunicados) && (
-        <div className="space-y-4">
-          <h2 className="font-bold text-foreground">Comunicados</h2>
-          {permisos.has(PERMISSIONS.crearComunicados) && (
-            <Card>
-              <h3 className="mb-3 font-semibold text-foreground">Crear comunicado</h3>
-              <FormularioNuevoComunicado />
-            </Card>
-          )}
+        <div className="space-y-6">
           <div>
-            <ListadoComunicados
-              comunicados={comunicados}
-              puedeEditar={permisos.has(PERMISSIONS.crearComunicados)}
-            />
+            <h2 className="mb-4 font-bold text-foreground">Comunicados</h2>
+            {permisos.has(PERMISSIONS.crearComunicados) && (
+              <Card className="mb-6">
+                <h3 className="mb-3 font-semibold text-foreground">Crear comunicado</h3>
+                <FormularioNuevoComunicado />
+              </Card>
+            )}
           </div>
+          <ComunicadosGrid
+            comunicados={comunicados}
+            puedeEditar={permisos.has(PERMISSIONS.crearComunicados)}
+          />
         </div>
       )}
     </div>
