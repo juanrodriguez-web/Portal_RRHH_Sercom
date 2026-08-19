@@ -116,9 +116,9 @@ export function MiOrganigrama({ inicial }: { inicial: OrgNode }) {
                   {/* Zona conectora: bus horizontal + bajante vertical */}
                   <div className="relative h-6 w-full">
                     <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-border" />
-                    {i > 0 && <div className="absolute left-0 top-0 h-px w-1/2 bg-border" />}
+                    {i > 0 && <div className="absolute -left-3 right-1/2 top-0 h-px bg-border" />}
                     {i < equipo.length - 1 && (
-                      <div className="absolute right-0 top-0 h-px w-1/2 bg-border" />
+                      <div className="absolute left-1/2 -right-3 top-0 h-px bg-border" />
                     )}
                   </div>
                   <PersonCard nodo={reportado} compact />
