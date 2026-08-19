@@ -16,3 +16,23 @@ export function formatMinutos(totalMinutos: number) {
   const m = totalMinutos % 60;
   return `${h}h ${String(m).padStart(2, "0")}m`;
 }
+
+const ENTIDADES_HTML: Record<string, string> = {
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&nbsp;": " ",
+};
+
+// Extrae texto plano de HTML sin usar el DOM (debe funcionar en SSR, donde
+// `document` no existe).
+export function htmlATexto(html: string, maxChars: number): string {
+  const texto = html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&amp;|&lt;|&gt;|&quot;|&#39;|&nbsp;/g, (m) => ENTIDADES_HTML[m])
+    .replace(/\s+/g, " ")
+    .trim();
+  return texto.slice(0, maxChars).trim() + (texto.length > maxChars ? "..." : "");
+}

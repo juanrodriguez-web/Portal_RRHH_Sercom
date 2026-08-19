@@ -6,7 +6,7 @@ import parse from "html-react-parser";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatFecha } from "@/lib/format";
+import { formatFecha, htmlATexto } from "@/lib/format";
 import { archivarComunicado, marcarImportante, borrarComunicado } from "@/app/(portal)/comunicados/actions";
 import { TrashIcon, EditIcon, StarIcon } from "@/components/ui/icons";
 
@@ -39,14 +39,7 @@ export function ComunicadoCard({
 }: ComunicadoCardProps) {
   const [pending, startTransition] = useTransition();
 
-  const extractText = (html: string, maxChars: number = 150) => {
-    const temp = document.createElement("div");
-    temp.innerHTML = html;
-    const text = temp.textContent || temp.innerText || "";
-    return text.slice(0, maxChars).trim() + (text.length > maxChars ? "..." : "");
-  };
-
-  const extractoText = extractText(contenido, size === "featured" ? 200 : 120);
+  const extractoText = htmlATexto(contenido, size === "featured" ? 200 : 120);
 
   return (
     <Card
