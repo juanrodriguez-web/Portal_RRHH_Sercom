@@ -4,7 +4,7 @@ export function Logo({ className }: { className?: string }) {
   return (
     <div className={className}>
       <Image
-        src="/logo-sercom.jpg"
+        src="/logo-sercom.png"
         alt="Sercom Soluciones"
         width={200}
         height={80}

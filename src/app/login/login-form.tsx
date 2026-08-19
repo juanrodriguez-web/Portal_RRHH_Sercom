@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useFormStatus } from "react-dom";
 import type { User } from "@/generated/prisma/client";
 import { signInMicrosoft, signInDemo } from "./login-actions";
@@ -90,7 +91,11 @@ export default function LoginForm({
   return (
     <div className="flex flex-1 items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm rounded-[var(--radius-card)] border border-border bg-surface p-8 shadow-sm">
-        <Logo className="mb-8" />
+        <div className="mb-8 flex items-center gap-3">
+          <Logo className="max-w-[110px]" />
+          <div className="h-8 w-px bg-border" />
+          <Image src="/vodafone-logo.png" alt="Vodafone" width={28} height={28} />
+        </div>
         <h1 className="text-xl font-bold text-foreground">Portal RRHH</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Accede con tu cuenta corporativa de Microsoft 365.
