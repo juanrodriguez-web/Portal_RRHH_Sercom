@@ -56,7 +56,7 @@ export function ComunicadoCard({
     >
       {/* Imagen */}
       {imagen && (
-        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "3/2" }}>
+        <div className={`relative w-full overflow-hidden ${size === "featured" ? "max-h-40" : "max-h-24"}`} style={{ aspectRatio: "16/9" }}>
           <Image
             src={imagen}
             alt={titulo}
@@ -68,7 +68,7 @@ export function ComunicadoCard({
       )}
 
       {/* Contenido */}
-      <div className={`flex flex-1 flex-col ${imagen ? "p-4" : size === "featured" ? "p-5" : "p-4"}`}>
+      <div className={`flex flex-1 flex-col ${imagen ? "p-3" : size === "featured" ? "p-3" : "p-3"}`}>
         {/* Badge Importante */}
         {importante && (
           <div className="absolute right-3 top-3">
