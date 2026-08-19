@@ -48,7 +48,7 @@ export function ComunicadoCard({
 
   return (
     <Card
-      className={`relative flex flex-col overflow-hidden border-2 transition-all hover:shadow-md hover:scale-[1.02] ${
+      className={`relative flex flex-col overflow-hidden border-2 transition-all hover:shadow-md hover:scale-[1.02] h-full ${
         importante
           ? "border-warning bg-warning-tint"
           : "border-border bg-surface hover:border-border-strong"

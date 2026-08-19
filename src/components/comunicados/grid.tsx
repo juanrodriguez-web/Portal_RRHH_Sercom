@@ -106,10 +106,11 @@ export function ComunicadosGrid({
               <h3 className="mb-4 text-sm font-semibold uppercase text-muted-foreground">
                 📌 Destacados ({destacados.length})
               </h3>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 auto-rows-fr">
                 {destacados.map((c, i) => (
                   <div
                     key={c.id}
+                    className="h-full"
                     style={{
                       animation: `fadeInUp 0.5s ease-out ${i * 100}ms both`,
                     }}
@@ -134,10 +135,11 @@ export function ComunicadosGrid({
                   Comunicados ({normales.length})
                 </h3>
               )}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
                 {normales.map((c, i) => (
                   <div
                     key={c.id}
+                    className="h-full"
                     style={{
                       animation: `fadeInUp 0.5s ease-out ${(i + destacados.length) * 100}ms both`,
                     }}
