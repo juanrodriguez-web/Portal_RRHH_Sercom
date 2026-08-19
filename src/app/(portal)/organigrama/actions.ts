@@ -9,7 +9,7 @@ export type OrgNode = {
   email: string;
   departamento: string | null;
   managerId: string | null;
-  manager: { id: string; name: string; email: string; departamento: string | null } | null;
+  manager: { id: string; name: string; email: string; departamento: string | null; managerId: string | null } | null;
   reportes: { id: string; name: string; email: string; departamento: string | null }[];
 };
 
@@ -30,6 +30,7 @@ export async function obtenerMiOrganigrama(): Promise<OrgNode> {
           name: true,
           email: true,
           departamento: true,
+          managerId: true,
         },
       },
       reportes: {

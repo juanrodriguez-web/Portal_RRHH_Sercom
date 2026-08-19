@@ -1,29 +1,74 @@
 "use client";
 
 import { useState } from "react";
-import { obtenerMiOrganigrama, obtenerNivelSuperior, type OrgNode } from "@/app/(portal)/organigrama/actions";
+import { obtenerNivelSuperior, type OrgNode } from "@/app/(portal)/organigrama/actions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronUpIcon } from "@/components/ui/icons";
 
-type HierarchyNode = OrgNode & { expanded?: boolean };
+type PersonaBasica = Pick<OrgNode, "id" | "name" | "email" | "departamento">;
+
+type HierarchyNode = PersonaBasica & Pick<OrgNode, "managerId"> & {
+  reportes?: OrgNode["reportes"];
+};
+
+function PersonCard({
+  nodo,
+  destacado,
+  compact = false,
+}: {
+  nodo: PersonaBasica;
+  destacado?: boolean;
+  compact?: boolean;
+}) {
+  return (
+    <Card
+      className={`w-full p-3 ${compact ? "" : "max-w-sm p-4"} border-2 ${
+        destacado ? "border-brand bg-brand-tint" : "border-border bg-surface"
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className={`flex items-center justify-center rounded-full bg-brand font-bold text-white flex-shrink-0 ${
+            compact ? "h-8 w-8 text-xs" : "h-10 w-10"
+          }`}
+        >
+          {nodo.name.charAt(0).toUpperCase()}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className={`font-semibold text-foreground truncate ${compact ? "text-sm" : ""}`}>{nodo.name}</h3>
+          <p className="text-xs text-muted-foreground truncate">{nodo.email}</p>
+          {nodo.departamento && <p className="text-xs text-muted-foreground">{nodo.departamento}</p>}
+        </div>
+      </div>
+      {destacado && (
+        <div className="mt-2 border-t border-border-strong pt-2">
+          <span className="text-xs font-semibold text-brand">TÚ</span>
+        </div>
+      )}
+    </Card>
+  );
+}
 
 export function MiOrganigrama({ inicial }: { inicial: OrgNode }) {
-  const [jerarquia, setJerarquia] = useState<HierarchyNode[]>([inicial]);
+  const jerarquiaInicial: HierarchyNode[] = inicial.manager
+    ? [{ ...inicial.manager }, inicial]
+    : [inicial];
+
+  const [jerarquia, setJerarquia] = useState<HierarchyNode[]>(jerarquiaInicial);
   const [loading, setLoading] = useState(false);
 
+  const yo = jerarquia[jerarquia.length - 1];
+  const equipo = yo.reportes ?? [];
+  const cima = jerarquia[0];
+  const hayMasNiveles = Boolean(cima.managerId);
+
   const expandirArriba = async () => {
-    if (loading || jerarquia.length === 0) return;
+    if (loading || !cima.managerId) return;
 
     setLoading(true);
     try {
-      const primerUsuario = jerarquia[0];
-      if (!primerUsuario.manager) {
-        setLoading(false);
-        return;
-      }
-
-      const nivelSuperior = await obtenerNivelSuperior(primerUsuario.id);
+      const nivelSuperior = await obtenerNivelSuperior(cima.id);
       if (nivelSuperior) {
         setJerarquia([nivelSuperior, ...jerarquia]);
       }
@@ -34,119 +79,56 @@ export function MiOrganigrama({ inicial }: { inicial: OrgNode }) {
     }
   };
 
-  const usuarioActual = jerarquia[jerarquia.length - 1];
-  const tieneManagerPendiente = usuarioActual?.manager?.id || false;
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Botón expandir arriba */}
-      {tieneManagerPendiente && (
+      {hayMasNiveles && (
         <div className="flex justify-center">
-          <Button
-            onClick={expandirArriba}
-            disabled={loading}
-            variant="secondary"
-            size="sm"
-            className="gap-2"
-          >
+          <Button onClick={expandirArriba} disabled={loading} variant="secondary" size="sm" className="gap-2">
             <ChevronUpIcon className="h-4 w-4" />
             {loading ? "Cargando..." : "Ver más niveles"}
           </Button>
         </div>
       )}
 
-      {/* Jerarquía de arriba a abajo */}
-      <div className="space-y-6">
+      {/* Cadena de mando: de arriba a abajo */}
+      <div className="flex flex-col items-center">
         {jerarquia.map((nodo, idx) => (
-          <div key={nodo.id} className="space-y-4">
-            {/* Línea vertical */}
-            {idx < jerarquia.length - 1 && (
-              <div className="flex justify-center">
-                <div className="h-8 w-0.5 bg-border" />
-              </div>
-            )}
-
-            {/* Card del usuario */}
-            <div className="flex justify-center">
-              <Card
-                className={`w-full max-w-sm border-2 p-4 ${
-                  idx === jerarquia.length - 1
-                    ? "border-brand bg-brand-tint" // YO - destacado
-                    : "border-border bg-surface"
-                }`}
-              >
-                <div className="space-y-2">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white font-bold flex-shrink-0">
-                      {nodo.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground">{nodo.name}</h3>
-                      <p className="text-xs text-muted-foreground">{nodo.email}</p>
-                      {nodo.departamento && (
-                        <p className="text-xs text-muted-foreground mt-1">{nodo.departamento}</p>
-                      )}
-                    </div>
-                  </div>
-                  {idx === jerarquia.length - 1 && (
-                    <div className="pt-2 border-t border-border-strong">
-                      <span className="text-xs font-semibold text-brand">TÚ</span>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-
-            {/* Mi equipo (solo en la última fila - yo) */}
-            {idx === jerarquia.length - 1 && nodo.reportes.length > 0 && (
-              <>
-                <div className="flex justify-center">
-                  <div className="h-8 w-0.5 bg-border" />
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-center text-sm font-semibold text-muted-foreground uppercase">
-                    Mi equipo ({nodo.reportes.length})
-                  </h4>
-
-                  {/* Línea horizontal conectando equipo */}
-                  <div className="flex justify-center">
-                    <div className="h-0.5 bg-border" style={{ width: `${Math.min(nodo.reportes.length * 220, 600)}px` }} />
-                  </div>
-
-                  {/* Cards del equipo */}
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {nodo.reportes.map((reportado) => (
-                      <Card key={reportado.id} className="border-border p-3">
-                        <div className="space-y-2">
-                          <div className="flex items-start gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-strong text-foreground text-xs font-bold flex-shrink-0">
-                              {reportado.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground truncate">{reportado.name}</p>
-                              <p className="text-xs text-muted-foreground truncate">{reportado.email}</p>
-                              {reportado.departamento && (
-                                <p className="text-xs text-muted-foreground">{reportado.departamento}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+          <div key={nodo.id} className="flex flex-col items-center">
+            {idx > 0 && <div className="h-6 w-px bg-border" />}
+            <PersonCard nodo={nodo} destacado={idx === jerarquia.length - 1} />
           </div>
         ))}
       </div>
 
-      {/* Sin equipo */}
-      {usuarioActual && usuarioActual.reportes.length === 0 && jerarquia.length > 0 && (
-        <div className="text-center py-8 text-muted-foreground text-sm">
-          No tienes equipo asignado
+      {/* Mi equipo */}
+      {equipo.length > 0 ? (
+        <div className="flex flex-col items-center">
+          <div className="h-6 w-px bg-border" />
+          <h4 className="mb-4 text-center text-sm font-semibold uppercase text-muted-foreground">
+            Mi equipo ({equipo.length})
+          </h4>
+
+          <div className="flex justify-center overflow-x-auto pb-2">
+            <div className="flex flex-nowrap gap-6 px-2">
+              {equipo.map((reportado, i) => (
+                <div key={reportado.id} className="flex w-56 flex-shrink-0 flex-col items-center">
+                  {/* Zona conectora: bus horizontal + bajante vertical */}
+                  <div className="relative h-6 w-full">
+                    <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-border" />
+                    {i > 0 && <div className="absolute left-0 top-0 h-px w-1/2 bg-border" />}
+                    {i < equipo.length - 1 && (
+                      <div className="absolute right-0 top-0 h-px w-1/2 bg-border" />
+                    )}
+                  </div>
+                  <PersonCard nodo={reportado} compact />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+      ) : (
+        <div className="py-8 text-center text-sm text-muted-foreground">No tienes equipo asignado</div>
       )}
     </div>
   );
