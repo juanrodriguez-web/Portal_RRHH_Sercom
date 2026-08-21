@@ -44,7 +44,9 @@ next-env.d.ts
 
 # IDE and tool artifacts
 .agents/
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/CLAUDE.md
 .windsurf/
 skills-lock.json
 
