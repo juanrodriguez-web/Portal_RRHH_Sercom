@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requirePermission, AuthzError } from "@/lib/authz";
+import { requirePermission, getEquipoIds, AuthzError } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
 import { contarDiasLaborables, getResumenSaldo, haySolapamiento } from "@/lib/vacaciones";
 
@@ -143,6 +143,13 @@ export async function resolverSolicitud(
     if (solicitud.userId === user.id) {
       // spec §7.5 — un manager no puede aprobar su propia solicitud.
       return { ok: false, error: "No puedes aprobar tu propia solicitud." };
+    }
+
+    if (ambito === "equipo") {
+      const equipoIds = await getEquipoIds(user.id);
+      if (!equipoIds.includes(solicitud.userId)) {
+        return { ok: false, error: "Esa solicitud no pertenece a tu equipo." };
+      }
     }
 
     const resumen = await getResumenSaldo(solicitud.userId, solicitud.fechaInicio.getUTCFullYear());
