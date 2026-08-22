@@ -50,4 +50,7 @@ next-env.d.ts
 .windsurf/
 skills-lock.json
 
+# graphify knowledge graph output (generated, regenerate with /graphify .)
+graphify-out/
+
 .vercel
