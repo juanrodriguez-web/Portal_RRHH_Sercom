@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requirePermission, AuthzError } from "@/lib/authz";
+import { requirePermission, getEquipoIds, AuthzError } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
 import {
   computeEstadoJornada,
@@ -120,9 +120,19 @@ export async function resolverCorreccion(
       ambito === "global" ? PERMISSIONS.corregirFichajeGlobal : PERMISSIONS.corregirFichajeEquipo
     );
 
-    const correccion = await prisma.correccionMarcacion.findUnique({ where: { id: correccionId } });
+    const correccion = await prisma.correccionMarcacion.findUnique({
+      where: { id: correccionId },
+      include: { marcacion: { select: { userId: true } } },
+    });
     if (!correccion || correccion.estado !== "PENDIENTE") {
       return { ok: false, error: "La corrección ya fue resuelta." };
+    }
+
+    if (ambito === "equipo") {
+      const equipoIds = await getEquipoIds(user.id);
+      if (!equipoIds.includes(correccion.marcacion.userId)) {
+        return { ok: false, error: "Esa corrección no pertenece a tu equipo." };
+      }
     }
 
     // El registro original en `Marcacion` nunca se sobrescribe (spec §6.6): solo
