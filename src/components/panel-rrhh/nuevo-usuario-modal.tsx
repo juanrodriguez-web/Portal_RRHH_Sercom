@@ -30,7 +30,7 @@ export function NuevoUsuarioModal({
           <h2 className="text-lg font-bold text-foreground">Alta de empleado</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Crea el registro RRHH antes de su primer inicio de sesión. Las credenciales las gestiona Microsoft 365
-            (spec §9.2) — al iniciar sesión por primera vez con este email, se vinculará automáticamente a esta ficha.
+            — al iniciar sesión por primera vez con este email, se vinculará automáticamente a esta ficha.
           </p>
         </div>
 

@@ -1,4 +1,4 @@
-import { requirePermission } from "@/lib/authz";
+import { requirePermissionOrRedirect } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { FilaJornada } from "@/components/panel-rrhh/fila-jornada";
 import { FormularioNuevaJornada } from "@/components/panel-rrhh/formulario-nueva-jornada";
 
 export default async function JornadasPage() {
-  await requirePermission(PERMISSIONS.gestionarJornadas);
+  await requirePermissionOrRedirect(PERMISSIONS.gestionarJornadas);
 
   const jornadas = await prisma.jornadaPlantilla.findMany({
     orderBy: { nombre: "asc" },

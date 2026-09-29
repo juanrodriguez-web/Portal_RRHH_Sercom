@@ -162,6 +162,16 @@ export function EditIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function MegaphoneIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base(props)}>
+      <path d="M3 11v3a1 1 0 0 0 1 1h2l3.5 5V5L6 10H4a1 1 0 0 0-1 1z" />
+      <path d="M13 8a4 4 0 0 1 0 8" />
+      <path d="M15 4.5a8 8 0 0 1 0 15" />
+    </svg>
+  );
+}
+
 export function TrashIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...base(props)}>

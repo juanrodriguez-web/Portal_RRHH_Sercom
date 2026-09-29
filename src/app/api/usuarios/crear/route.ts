@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   }
   if (!email.endsWith(DOMINIO_PERMITIDO)) {
     return Response.json(
-      { error: `El email debe pertenecer al dominio ${DOMINIO_PERMITIDO} (spec §9.2: la identidad viene de Microsoft 365).` },
+      { error: `El email debe pertenecer al dominio ${DOMINIO_PERMITIDO}.` },
       { status: 400 }
     );
   }

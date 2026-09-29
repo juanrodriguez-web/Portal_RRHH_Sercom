@@ -13,6 +13,8 @@ type UsuarioConPermisos = User & {
 interface FilaUsuarioProps {
   usuario: UsuarioConPermisos;
   managers: { id: string; name: string }[];
+  jornadas: { id: string; nombre: string }[];
+  jornadaActualId?: string;
   onFieldChange?: (fieldName: string, value: unknown) => void;
   hasChanges?: boolean;
   onBorrar?: () => void;
@@ -22,6 +24,8 @@ interface FilaUsuarioProps {
 export function FilaUsuario({
   usuario,
   managers,
+  jornadas,
+  jornadaActualId = "",
   onFieldChange,
   hasChanges = false,
   onBorrar,
@@ -33,6 +37,7 @@ export function FilaUsuario({
   const [editandoEmail, setEditandoEmail] = useState(false);
   const [departamento, setDepartamento] = useState(usuario.departamento ?? "");
   const [managerId, setManagerId] = useState(usuario.managerId ?? "");
+  const [jornadaId, setJornadaId] = useState(jornadaActualId);
   const [estado, setEstado] = useState(usuario.estado);
   const grupoDetectado = detectarGrupoUsuario(usuario.permisos);
   const esPersonalizado = grupoDetectado === "custom";
@@ -58,6 +63,11 @@ export function FilaUsuario({
   const handleManagerChange = (value: string) => {
     setManagerId(value);
     onFieldChange?.("managerId", value || null);
+  };
+
+  const handleJornadaChange = (value: string) => {
+    setJornadaId(value);
+    onFieldChange?.("jornadaId", value || null);
   };
 
   const handleEstadoChange = (value: string) => {
@@ -188,6 +198,21 @@ export function FilaUsuario({
                 {m.name}
               </option>
             ))}
+        </select>
+      </td>
+      <td className="py-2 pr-4">
+        <select
+          value={jornadaId}
+          onChange={(e) => handleJornadaChange(e.target.value)}
+          title="Jornada laboral asignada actualmente"
+          className="w-36 rounded-[var(--radius-control)] border border-border-strong px-2 py-1 text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+        >
+          <option value="">Sin asignar</option>
+          {jornadas.map((j) => (
+            <option key={j.id} value={j.id}>
+              {j.nombre}
+            </option>
+          ))}
         </select>
       </td>
       <td className="py-2 pr-4">

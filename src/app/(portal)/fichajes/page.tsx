@@ -120,7 +120,11 @@ export default async function FichajesPage({
             </a>
           </div>
           <p className="text-sm text-muted-foreground">
-            Consulta detallada disponible en Panel RRHH → Reportes.
+            Consulta detallada disponible en{" "}
+            <a href="/panel-rrhh/fichajes" className="font-semibold text-brand hover:underline">
+              Panel RRHH → Fichajes
+            </a>
+            .
           </p>
         </Card>
       ) : null}

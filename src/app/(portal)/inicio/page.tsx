@@ -44,11 +44,23 @@ export default async function InicioPage() {
   const hora = ahora.getHours();
   const saludo = hora < 13 ? "Buenos días" : hora < 20 ? "Buenas tardes" : "Buenas noches";
 
+  // El aviso "¿fichamos tu entrada?" solo tiene sentido cerca del horario
+  // configurado de entrada -- de lo contrario aparece de noche o de
+  // madrugada sin ningún fichaje pendiente real (E2E-09). Sin tramo1Inicio
+  // configurado (jornada flexible) no hay horario contra el que comparar,
+  // así que se muestra igual que antes.
+  const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  const dentroDeVentanaEntrada =
+    jornada?.tramo1Inicio == null
+      ? true
+      : minutosAhora >= jornada.tramo1Inicio - 60 && minutosAhora <= jornada.tramo1Inicio + 240;
+  const accionPendiente = accion?.tipo === "ENTRADA" && accion?.tramo === 1 && dentroDeVentanaEntrada;
+
   return (
     <div className="flex flex-col gap-6">
       <AvisoFichaje
-        accionPendiente={accion?.tipo === "ENTRADA" && accion?.tramo === 1}
-        etiquetaAccion={accion?.tipo === "ENTRADA" && accion?.tramo === 1 ? accion.etiqueta : undefined}
+        accionPendiente={accionPendiente}
+        etiquetaAccion={accionPendiente ? accion?.etiqueta : undefined}
       />
 
       <Card className="flex items-center gap-4">

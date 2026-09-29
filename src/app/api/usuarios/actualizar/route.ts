@@ -16,8 +16,10 @@ export async function POST(req: Request) {
     return new Response("Forbidden", { status: 403 });
   }
 
+  const actorId = session.user.id;
+
   const body = await req.json();
-  const { usuarioId, name, email: emailRaw, departamento, managerId, estado, grupoPermisos } = body;
+  const { usuarioId, name, email: emailRaw, departamento, managerId, estado, grupoPermisos, jornadaId } = body;
 
   if (!usuarioId) {
     return new Response("Missing usuarioId", { status: 400 });
@@ -124,6 +126,44 @@ export async function POST(req: Request) {
           valoresDespues: { grupoNuevo: grupoPermisos },
         },
       });
+    }
+
+    // Reasignar jornada: cierra la asignación vigente y abre una nueva (spec §6.1 — histórico de jornadas por rango de fechas)
+    if (jornadaId !== undefined) {
+      const asignacionVigente = await prisma.asignacionJornada.findFirst({
+        where: { userId: usuarioId, vigenteHasta: null },
+      });
+
+      if (asignacionVigente?.jornadaId !== jornadaId) {
+        const ahora = new Date();
+
+        await prisma.$transaction(async (tx) => {
+          if (asignacionVigente) {
+            await tx.asignacionJornada.update({
+              where: { id: asignacionVigente.id },
+              data: { vigenteHasta: ahora },
+            });
+          }
+
+          if (jornadaId) {
+            await tx.asignacionJornada.create({
+              data: { userId: usuarioId, jornadaId, vigenteDesde: ahora },
+            });
+          }
+
+          await tx.auditLog.create({
+            data: {
+              actorId,
+              accion: "REASIGNAR_JORNADA",
+              entidad: "AsignacionJornada",
+              entidadId: usuarioId,
+              motivo: "Reasignación de jornada desde ficha de Usuarios",
+              valoresAntes: { jornadaId: asignacionVigente?.jornadaId ?? null },
+              valoresDespues: { jornadaId: jornadaId || null },
+            },
+          });
+        });
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });

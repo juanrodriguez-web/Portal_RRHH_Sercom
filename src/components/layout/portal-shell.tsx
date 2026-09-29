@@ -37,10 +37,30 @@ export function PortalShell({
   children: React.ReactNode;
 }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [notifAbierto, setNotifAbierto] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const pathname = usePathname();
   const prevPathname = useRef(pathname);
   const navTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!notifAbierto) return;
+    const cerrarSiFuera = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifAbierto(false);
+      }
+    };
+    const cerrarConEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNotifAbierto(false);
+    };
+    document.addEventListener("mousedown", cerrarSiFuera);
+    document.addEventListener("keydown", cerrarConEscape);
+    return () => {
+      document.removeEventListener("mousedown", cerrarSiFuera);
+      document.removeEventListener("keydown", cerrarConEscape);
+    };
+  }, [notifAbierto]);
 
   // La ruta ya cambió -> la navegación terminó (el nuevo contenido está en
   // el DOM). No depende de un timer fijo: se corta en cuanto Next.js
@@ -140,13 +160,27 @@ export function PortalShell({
           </button>
           <h1 className="truncate text-lg font-bold text-foreground">{title}</h1>
           <div className="flex-1" />
-          <button
-            type="button"
-            aria-label="Notificaciones"
-            className="rounded-full p-2 text-muted-foreground hover:bg-background"
-          >
-            <BellIcon />
-          </button>
+          <div className="relative" ref={notifRef}>
+            <button
+              type="button"
+              aria-label="Notificaciones"
+              aria-haspopup="true"
+              aria-expanded={notifAbierto}
+              onClick={() => setNotifAbierto((v) => !v)}
+              className="rounded-full p-2 text-muted-foreground hover:bg-background"
+            >
+              <BellIcon />
+            </button>
+            {notifAbierto && (
+              <div
+                role="menu"
+                className="absolute right-0 top-full z-20 mt-2 w-64 rounded-[var(--radius-card)] border border-border bg-surface p-4 text-sm shadow-lg"
+              >
+                <p className="font-semibold text-foreground">Notificaciones</p>
+                <p className="mt-2 text-muted-foreground">No tienes notificaciones.</p>
+              </div>
+            )}
+          </div>
           <button
             type="button"
             aria-label="Cambiar tema"

@@ -99,6 +99,18 @@ export function ComunicadoCard({
           {extractoText}
         </p>
 
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onView?.(id);
+          }}
+          aria-label={`Leer comunicado: ${titulo}`}
+          className="mt-2 self-start text-xs font-semibold text-brand hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        >
+          Leer más →
+        </button>
+
         {/* Acciones RRHH */}
         {puedeEditar && (
           <div

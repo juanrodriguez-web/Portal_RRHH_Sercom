@@ -6,9 +6,9 @@ const demoLoginHabilitado = process.env.AUTH_ENABLE_DEMO_LOGIN === "true";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, callbackUrl } = await searchParams;
   const usuariosDemo = demoLoginHabilitado
     ? await prisma.user.findMany({
         where: { estado: "ACTIVO", email: { endsWith: "@sercomsoluciones.es" } },
@@ -21,6 +21,7 @@ export default async function LoginPage({
       demoLoginHabilitado={demoLoginHabilitado}
       usuariosDemo={usuariosDemo}
       error={error}
+      callbackUrl={callbackUrl}
     />
   );
 }

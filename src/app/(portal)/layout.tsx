@@ -4,7 +4,7 @@ import { getUserPermissionCodes } from "@/lib/authz";
 import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { PortalShell, type NavItem } from "@/components/layout/portal-shell";
-import { ClockIcon, HomeIcon, CalendarIcon, ShieldIcon, UsersIcon } from "@/components/ui/icons";
+import { ClockIcon, HomeIcon, CalendarIcon, ShieldIcon, UsersIcon, MegaphoneIcon } from "@/components/ui/icons";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -24,6 +24,9 @@ export default async function PortalLayout({ children }: { children: React.React
   }
   if (permisos.has(PERMISSIONS.verUsuarios)) {
     general.push({ href: "/organigrama", label: "Organigrama", icon: <UsersIcon /> });
+  }
+  if (permisos.has(PERMISSIONS.verComunicados)) {
+    general.push({ href: "/comunicados", label: "Comunicados", icon: <MegaphoneIcon /> });
   }
 
   const rrhh: NavItem[] = [];

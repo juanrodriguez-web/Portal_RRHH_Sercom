@@ -1,4 +1,5 @@
 import "server-only";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { PermissionCode } from "@/lib/permissions";
@@ -46,6 +47,23 @@ export async function requirePermission(code: PermissionCode) {
   const allowed = await hasPermission(user.id, code);
   if (!allowed) throw new AuthzError(`Falta el permiso: ${code}`);
   return user;
+}
+
+/**
+ * Como requirePermission, pero para usar en el nivel superior de una
+ * page.tsx que protege una ruta entera: en vez de lanzar (que Next.js
+ * termina mostrando como un crash generico sin mensaje util, porque
+ * redacta el error de render en produccion), redirige a una pantalla
+ * de "sin permiso" legible. Las Server Actions siguen usando
+ * requirePermission -- ahi lanzar es lo correcto, no hay pantalla que
+ * mostrar y el llamador debe poder capturarlo.
+ */
+export async function requirePermissionOrRedirect(code: PermissionCode) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+  const allowed = await hasPermission(session.user.id, code);
+  if (!allowed) redirect("/sin-permiso");
+  return session.user;
 }
 
 /** Ids de empleados cuyo manager vigente es `managerId` (spec §4.2: ámbito equipo). */

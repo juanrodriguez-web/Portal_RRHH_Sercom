@@ -20,9 +20,10 @@ interface UsuariosFormProps {
   usuarios: Array<User & { permisos: Array<{ permissionCode: string }> }>;
   managers: Array<{ id: string; name: string }>;
   jornadas: Array<{ id: string; nombre: string }>;
+  jornadaActualPorUsuario: Record<string, string>;
 }
 
-export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps) {
+export function UsuariosForm({ usuarios, managers, jornadas, jornadaActualPorUsuario }: UsuariosFormProps) {
   const router = useRouter();
   const [changes, setChanges] = useState<Map<string, Record<string, unknown>>>(new Map());
   const [saving, setSaving] = useState(false);
@@ -242,6 +243,7 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
               <th className="py-2 pr-4">Email</th>
               <th className="py-2 pr-4">Departamento</th>
               <th className="py-2 pr-4">Manager</th>
+              <th className="py-2 pr-4">Jornada</th>
               <th className="py-2 pr-4">Estado</th>
               <th className="py-2 pr-4">Rol</th>
               <th className="py-2 pr-4" />
@@ -250,7 +252,7 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
           <tbody>
             {usuariosFiltrados.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                <td colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
                   No se encontraron empleados.
                 </td>
               </tr>
@@ -260,6 +262,8 @@ export function UsuariosForm({ usuarios, managers, jornadas }: UsuariosFormProps
                 key={u.id}
                 usuario={u}
                 managers={managers}
+                jornadas={jornadas}
+                jornadaActualId={jornadaActualPorUsuario[u.id] ?? ""}
                 onFieldChange={(fieldName, value) => handleRowChange(u.id, fieldName, value)}
                 hasChanges={!!changes.get(u.id)}
                 onBorrar={() => handleBorrar(u.id)}

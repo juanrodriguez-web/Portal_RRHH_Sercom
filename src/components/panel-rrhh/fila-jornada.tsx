@@ -49,14 +49,15 @@ export function FilaJornada({ jornada }: { jornada: JornadaPlantilla }) {
 
   return (
     <tr className="border-b border-border last:border-0">
-      <td className="py-2 pr-4 font-medium w-40">
+      <td className="py-2 pr-4 font-medium w-56">
         <input
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
+          title={nombre}
           className="w-full rounded-[var(--radius-control)] border border-border-strong px-2 py-1 text-sm"
         />
       </td>
-      <td className="py-2 pr-4 w-20">
+      <td className="py-2 pr-4 w-32">
         <select
           value={tipo}
           onChange={(e) => setTipo(e.target.value)}

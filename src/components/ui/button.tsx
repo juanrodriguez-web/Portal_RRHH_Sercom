@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { ButtonSpinner } from "./button-spinner";
 
 type Variant = "primary" | "secondary" | "ghost" | "success" | "warning" | "destructive";
@@ -19,17 +19,16 @@ const SIZE_CLASSES: Record<Size, string> = {
   md: "px-4 py-2.5 text-sm",
 };
 
-export function Button({
-  variant = "primary",
-  size = "md",
-  className = "",
-  loading = false,
-  disabled,
-  children,
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; loading?: boolean }) {
+export const Button = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; loading?: boolean }
+>(function Button(
+  { variant = "primary", size = "md", className = "", loading = false, disabled, children, ...props },
+  ref
+) {
   return (
     <button
+      ref={ref}
       className={`relative inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] font-semibold transition-colors disabled:cursor-not-allowed outline-none ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
@@ -45,4 +44,4 @@ export function Button({
       )}
     </button>
   );
-}
+});

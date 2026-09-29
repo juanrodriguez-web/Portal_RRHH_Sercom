@@ -37,7 +37,7 @@ export function computeEstadoJornada(
 }
 
 const ACCIONES_PARTIDA: Record<EstadoJornada, AccionFichaje | null> = {
-  NO_INICIADA: { tipo: "ENTRADA", tramo: 1, etiqueta: "Entrada mañana" },
+  NO_INICIADA: { tipo: "ENTRADA", tramo: 1, etiqueta: "Entrada de mañana" },
   EN_TRAMO_1: { tipo: "SALIDA", tramo: 1, etiqueta: "Fin de mañana" },
   EN_PAUSA: { tipo: "ENTRADA", tramo: 2, etiqueta: "Entrada tarde" },
   EN_TRAMO_2: { tipo: "SALIDA", tramo: 2, etiqueta: "Fin de jornada" },
@@ -184,6 +184,68 @@ export async function getHistoricoUsuario(
   }
 
   return filas.sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+}
+
+/** Histórico global paginado por rango de fechas para todos los empleados (spec §9.1 — RRHH). */
+export async function getHistoricoGlobal(desde: Date, hasta: Date): Promise<FilaHistoricoData[]> {
+  const [marcaciones, ausencias, usuarios] = await Promise.all([
+    prisma.marcacion.findMany({
+      where: { fechaLaboral: { gte: desde, lte: hasta } },
+      include: { correcciones: true },
+      orderBy: { fechaLaboral: "asc" },
+    }),
+    prisma.solicitudAusencia.findMany({
+      where: { estado: "APROBADA", fechaInicio: { lte: hasta }, fechaFin: { gte: desde } },
+    }),
+    prisma.user.findMany({ select: { id: true, name: true } }),
+  ]);
+
+  const nombrePorId = new Map(usuarios.map((u) => [u.id, u.name]));
+
+  const porUsuarioDia = new Map<string, typeof marcaciones>();
+  for (const m of marcaciones) {
+    const key = `${m.userId}__${m.fechaLaboral.toISOString().slice(0, 10)}`;
+    if (!porUsuarioDia.has(key)) porUsuarioDia.set(key, []);
+    porUsuarioDia.get(key)!.push(m);
+  }
+
+  const filas: FilaHistoricoData[] = [];
+  for (const [key, delDia] of porUsuarioDia) {
+    const [userId, fechaStr] = key.split("__");
+    const get = (tipo: "ENTRADA" | "SALIDA", tramo: number) => {
+      const m = delDia.find((x) => x.tipo === tipo && x.tramo === tramo);
+      if (!m) return { valor: null as Date | null, corregida: false };
+      const { valor, corregida } = resolverValorVigente(m, m.correcciones);
+      return { valor, corregida };
+    };
+    const em = get("ENTRADA", 1);
+    const sm = get("SALIDA", 1);
+    const et = get("ENTRADA", 2);
+    const st = get("SALIDA", 2);
+
+    const esAusencia = ausencias.some((a) => {
+      const fecha = new Date(fechaStr);
+      return a.userId === userId && a.fechaInicio <= fecha && a.fechaFin >= fecha;
+    });
+
+    const completo = em.valor && sm.valor && (et.valor ? st.valor : true);
+
+    filas.push({
+      fecha: new Date(fechaStr),
+      entradaManana: em.valor,
+      salidaManana: sm.valor,
+      entradaTarde: et.valor,
+      salidaTarde: st.valor,
+      totalMinutos: minutosTrabajados(delDia),
+      corregida: em.corregida || sm.corregida || et.corregida || st.corregida,
+      estado: esAusencia ? "AUSENCIA" : completo ? "OK" : "INCOMPLETO",
+      empleado: nombrePorId.get(userId) ?? "—",
+    });
+  }
+
+  return filas.sort(
+    (a, b) => b.fecha.getTime() - a.fecha.getTime() || (a.empleado ?? "").localeCompare(b.empleado ?? "")
+  );
 }
 
 export async function tieneAusenciaAprobadaHoy(userId: string, fecha: Date) {

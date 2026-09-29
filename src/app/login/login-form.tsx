@@ -83,10 +83,12 @@ export default function LoginForm({
   demoLoginHabilitado,
   usuariosDemo,
   error,
+  callbackUrl,
 }: {
   demoLoginHabilitado: boolean;
   usuariosDemo: User[];
   error?: string;
+  callbackUrl?: string;
 }) {
   return (
     <div className="flex flex-1 items-center justify-center bg-background px-4">
@@ -107,7 +109,7 @@ export default function LoginForm({
           </p>
         ) : null}
 
-        <form className="mt-6" action={signInMicrosoft}>
+        <form className="mt-6" action={() => signInMicrosoft(callbackUrl)}>
           <MicrosoftButton />
         </form>
 
@@ -119,7 +121,7 @@ export default function LoginForm({
             <form
               className="flex flex-col gap-2"
               action={async (formData) => {
-                await signInDemo(formData.get("email") as string);
+                await signInDemo(formData.get("email") as string, callbackUrl);
               }}
             >
               <select
