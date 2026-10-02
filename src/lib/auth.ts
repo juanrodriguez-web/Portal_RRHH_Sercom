@@ -3,8 +3,11 @@ import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { PERMISSION_GROUPS } from "@/lib/permissions";
 
-// TEMP: Demo login habilitado para testing sin Microsoft 365
-const demoLoginHabilitado = true;
+// TEMP: Demo login para testing sin Microsoft 365. Se gatea aquí (backend),
+// no solo ocultando el selector en /login: si AUTH_ENABLE_DEMO_LOGIN no es
+// exactamente "true", el provider "demo" ni siquiera se registra en NextAuth,
+// así que /api/auth/callback/demo deja de aceptar peticiones.
+const demoLoginHabilitado = process.env.AUTH_ENABLE_DEMO_LOGIN === "true";
 
 declare module "next-auth" {
   interface Session {
@@ -19,17 +22,21 @@ declare module "next-auth" {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    Credentials({
-      id: "demo",
-      name: "Demo Login",
-      credentials: { email: { label: "Email", type: "text" } },
-      async authorize(credentials) {
-        const email = String(credentials?.email ?? "").toLowerCase();
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user || user.estado !== "ACTIVO") return null;
-        return { id: user.id, email: user.email, name: user.name };
-      },
-    }),
+    ...(demoLoginHabilitado
+      ? [
+          Credentials({
+            id: "demo",
+            name: "Demo Login",
+            credentials: { email: { label: "Email", type: "text" } },
+            async authorize(credentials) {
+              const email = String(credentials?.email ?? "").toLowerCase();
+              const user = await prisma.user.findUnique({ where: { email } });
+              if (!user || user.estado !== "ACTIVO") return null;
+              return { id: user.id, email: user.email, name: user.name };
+            },
+          }),
+        ]
+      : []),
   ],
   session: { strategy: "jwt" },
   pages: {
